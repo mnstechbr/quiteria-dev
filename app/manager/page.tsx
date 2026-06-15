@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CategoryList } from "@/components/manager/CategoryList";
+import { CreateCategoryForm } from "@/components/manager/CreateCategoryForm";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -119,6 +120,22 @@ export default function ManagerPage() {
     setCategories(data.categories ?? []);
   }
 
+  function handleCategoryCreated(category: Category) {
+    setCategories((currentCategories) => [
+      ...currentCategories,
+      category,
+    ]);
+
+    setOverview((currentOverview) =>
+      currentOverview
+        ? {
+            ...currentOverview,
+            categoriesCount: currentOverview.categoriesCount + 1,
+          }
+        : currentOverview,
+    );
+  }
+
   async function handleLogout() {
     await signOut();
     window.location.replace("/login");
@@ -198,6 +215,8 @@ export default function ManagerPage() {
             </div>
           </Card>
         )}
+
+        <CreateCategoryForm onCreated={handleCategoryCreated} />
 
         <Card>
           <div className="mb-6">
