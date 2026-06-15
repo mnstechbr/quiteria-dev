@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getBearerToken } from "@/lib/auth/request-auth";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+const DEFAULT_TABLES = [
+  "Mesa 01",
+  "Mesa 02",
+  "Mesa 03",
+  "Mesa 04",
+  "Mesa 05",
+  "Mesa 06",
+  "Mesa 07",
+  "Mesa 08",
+  "Mesa 09",
+  "Mesa 10",
+];
+
+const DEFAULT_CATEGORIES = [
+  "Lanches",
+  "Porções",
+  "Bebidas",
+  "Drinks",
+  "Sobremesas",
+];
 
 function normalizeSlug(value: string): string {
   return value
@@ -100,6 +121,47 @@ export async function POST(request: Request) {
 
     if (restaurantError) {
       throw new Error(restaurantError.message);
+    }
+
+    const { error: settingsError } = await supabase
+      .from("restaurant_settings")
+      .insert({
+        restaurant_id: restaurant.id,
+        primary_color: "#f97316",
+        secondary_color: "#111827",
+      });
+
+    if (settingsError) {
+      throw new Error(`Erro ao criar configurações: ${settingsError.message}`);
+    }
+
+    const tables = DEFAULT_TABLES.map((tableName) => ({
+      restaurant_id: restaurant.id,
+      name: tableName,
+      qr_token: crypto.randomUUID(),
+    }));
+
+    const { error: tablesError } = await supabase
+      .from("tables")
+      .insert(tables);
+
+    if (tablesError) {
+      throw new Error(`Erro ao criar mesas: ${tablesError.message}`);
+    }
+
+    const categories = DEFAULT_CATEGORIES.map((categoryName, index) => ({
+      restaurant_id: restaurant.id,
+      name: categoryName,
+      sort_order: index + 1,
+      is_active: true,
+    }));
+
+    const { error: categoriesError } = await supabase
+      .from("categories")
+      .insert(categories);
+
+    if (categoriesError) {
+      throw new Error(`Erro ao criar categorias: ${categoriesError.message}`);
     }
 
     return NextResponse.json(
