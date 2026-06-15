@@ -17,3 +17,16 @@ export type RestaurantSettings = {
   created_at: string;
   updated_at: string;
 };
+
+export type CreateRestaurantInput = {
+  name: string;
+  slug: string;
+};
+
+export type RestaurantListItem = {
+  id: string;
+  name: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+};
