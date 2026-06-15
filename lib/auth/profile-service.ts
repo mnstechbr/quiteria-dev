@@ -10,3 +10,7 @@ export async function getProfileByUserId(
 export function isSuperAdmin(profile: UserProfile | null): boolean {
   return profile?.global_role === "SUPER_ADMIN";
 }
+
+export function isRegularUser(profile: UserProfile | null): boolean {
+  return profile?.global_role === "USER";
+}
