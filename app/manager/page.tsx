@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CategoryList } from "@/components/manager/CategoryList";
 import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
+import { Category } from "@/types/category";
 import { Restaurant } from "@/types/restaurant";
 
 type ManagerRestaurantOverview = {
@@ -16,18 +18,9 @@ type ManagerRestaurantOverview = {
 };
 
 function getStatusLabel(status: string) {
-  if (status === "PENDING") {
-    return "Configuração pendente";
-  }
-
-  if (status === "ACTIVE") {
-    return "Ativo";
-  }
-
-  if (status === "SUSPENDED") {
-    return "Suspenso";
-  }
-
+  if (status === "PENDING") return "Configuração pendente";
+  if (status === "ACTIVE") return "Ativo";
+  if (status === "SUSPENDED") return "Suspenso";
   return status;
 }
 
@@ -35,9 +28,8 @@ export default function ManagerPage() {
   const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
   const [userName, setUserName] = useState("");
-  const [overview, setOverview] = useState<ManagerRestaurantOverview | null>(
-    null,
-  );
+  const [overview, setOverview] = useState<ManagerRestaurantOverview | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     async function initializePage() {
@@ -62,7 +54,10 @@ export default function ManagerPage() {
         setUserName(session.profile?.full_name ?? session.user.email ?? "Gerente");
         setAllowed(true);
 
-        await loadRestaurantOverview();
+        await Promise.all([
+          loadRestaurantOverview(),
+          loadCategories(),
+        ]);
       } catch {
         window.location.replace("/login");
       } finally {
@@ -73,7 +68,7 @@ export default function ManagerPage() {
     initializePage();
   }, []);
 
-  async function loadRestaurantOverview() {
+  async function getAccessToken() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -82,9 +77,15 @@ export default function ManagerPage() {
       throw new Error("Sessão não encontrada.");
     }
 
+    return session.access_token;
+  }
+
+  async function loadRestaurantOverview() {
+    const accessToken = await getAccessToken();
+
     const response = await fetch("/api/manager/restaurant", {
       headers: {
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
@@ -99,6 +100,23 @@ export default function ManagerPage() {
       tablesCount: data.tablesCount ?? 0,
       categoriesCount: data.categoriesCount ?? 0,
     });
+  }
+
+  async function loadCategories() {
+    const accessToken = await getAccessToken();
+
+    const response = await fetch("/api/categories", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar categorias.");
+    }
+
+    const data = await response.json();
+    setCategories(data.categories ?? []);
   }
 
   async function handleLogout() {
@@ -160,9 +178,7 @@ export default function ManagerPage() {
                 </p>
               </div>
 
-              <Badge>
-                {getStatusLabel(overview.restaurant.setup_status)}
-              </Badge>
+              <Badge>{getStatusLabel(overview.restaurant.setup_status)}</Badge>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -182,6 +198,17 @@ export default function ManagerPage() {
             </div>
           </Card>
         )}
+
+        <Card>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Categorias</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              Categorias atuais do cardápio deste restaurante.
+            </p>
+          </div>
+
+          <CategoryList categories={categories} />
+        </Card>
       </section>
     </main>
   );
