@@ -70,7 +70,9 @@ export async function GET(request: Request) {
 
     const { data, error } = await supabase
       .from("restaurants")
-      .select("id, name, slug, is_active, setup_status, created_at, updated_at")
+      .select(
+        "id, name, slug, is_active, setup_status, manager_email, created_at, updated_at",
+      )
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -116,7 +118,9 @@ export async function POST(request: Request) {
         slug,
         setup_status: "PENDING",
       })
-      .select("id, name, slug, is_active, setup_status, created_at, updated_at")
+      .select(
+        "id, name, slug, is_active, setup_status, manager_email, created_at, updated_at",
+      )
       .single();
 
     if (restaurantError) {
@@ -141,9 +145,7 @@ export async function POST(request: Request) {
       qr_token: crypto.randomUUID(),
     }));
 
-    const { error: tablesError } = await supabase
-      .from("tables")
-      .insert(tables);
+    const { error: tablesError } = await supabase.from("tables").insert(tables);
 
     if (tablesError) {
       throw new Error(`Erro ao criar mesas: ${tablesError.message}`);

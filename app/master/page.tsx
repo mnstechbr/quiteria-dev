@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CreateManagerForm } from "@/components/master/CreateManagerForm";
 import { CreateRestaurantForm } from "@/components/master/CreateRestaurantForm";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
@@ -68,6 +69,19 @@ export default function MasterPage() {
     ]);
   }
 
+  function handleManagerCreated(restaurantId: string, managerEmail: string) {
+    setRestaurants((currentRestaurants) =>
+      currentRestaurants.map((restaurant) =>
+        restaurant.id === restaurantId
+          ? {
+              ...restaurant,
+              manager_email: managerEmail,
+            }
+          : restaurant,
+      ),
+    );
+  }
+
   async function handleLogout() {
     await signOut();
     window.location.replace("/login");
@@ -131,16 +145,30 @@ export default function MasterPage() {
               {restaurants.map((restaurant) => (
                 <div
                   key={restaurant.id}
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-zinc-900/70 p-4"
+                  className="rounded-2xl border border-white/10 bg-zinc-900/70 p-4"
                 >
-                  <div>
-                    <p className="font-medium">{restaurant.name}</p>
-                    <p className="text-sm text-zinc-500">/{restaurant.slug}</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-medium">{restaurant.name}</p>
+                      <p className="text-sm text-zinc-500">/{restaurant.slug}</p>
+
+                      <p className="mt-2 text-sm text-zinc-400">
+                        Gerente:{" "}
+                        {restaurant.manager_email ?? "Nenhum gerente cadastrado"}
+                      </p>
+                    </div>
+
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300">
+                      {restaurant.setup_status}
+                    </span>
                   </div>
 
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300">
-                    {restaurant.setup_status}
-                  </span>
+                  {!restaurant.manager_email && (
+                    <CreateManagerForm
+                      restaurant={restaurant}
+                      onManagerCreated={handleManagerCreated}
+                    />
+                  )}
                 </div>
               ))}
             </div>

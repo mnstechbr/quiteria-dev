@@ -6,6 +6,7 @@ export type Restaurant = {
   slug: string;
   is_active: boolean;
   setup_status: RestaurantSetupStatus;
+  manager_email: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -32,6 +33,7 @@ export type RestaurantListItem = {
   slug: string;
   is_active: boolean;
   setup_status: RestaurantSetupStatus;
+  manager_email: string | null;
   created_at: string;
 };
 
