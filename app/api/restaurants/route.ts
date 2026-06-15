@@ -1,38 +1,63 @@
 import { NextResponse } from "next/server";
-import { getUserFromRequest } from "@/lib/auth/request-auth";
-import { getProfileByUserId, isSuperAdmin } from "@/lib/auth/profile-service";
-import {
-  getRestaurants,
-  registerRestaurant,
-} from "@/lib/restaurants/restaurant-service";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getBearerToken } from "@/lib/auth/request-auth";
 
-async function requireSuperAdminFromRequest(request: Request) {
-  const user = await getUserFromRequest(request);
+function normalizeSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
-  if (!user) {
+async function requireSuperAdmin(request: Request) {
+  const token = getBearerToken(request);
+
+  if (!token) {
     throw new Error("UNAUTHORIZED");
   }
 
-  const profile = await getProfileByUserId(user.id);
+  const supabase = createSupabaseServerClient(token);
 
-  if (!isSuperAdmin(profile)) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("UNAUTHORIZED");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("user_profiles")
+    .select("id, global_role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError || profile?.global_role !== "SUPER_ADMIN") {
     throw new Error("FORBIDDEN");
   }
 
-  return {
-    user,
-    profile,
-  };
+  return supabase;
 }
 
 export async function GET(request: Request) {
   try {
-    await requireSuperAdminFromRequest(request);
+    const supabase = await requireSuperAdmin(request);
 
-    const restaurants = await getRestaurants();
+    const { data, error } = await supabase
+      .from("restaurants")
+      .select("id, name, slug, is_active, setup_status, created_at, updated_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw new Error(error.message);
+    }
 
     return NextResponse.json({
-      restaurants,
+      restaurants: data ?? [],
     });
   } catch (error) {
     return NextResponse.json(
@@ -49,14 +74,33 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireSuperAdminFromRequest(request);
-
+    const supabase = await requireSuperAdmin(request);
     const body = await request.json();
 
-    const restaurant = await registerRestaurant({
-      name: body.name,
-      slug: body.slug,
-    });
+    const name = String(body.name ?? "").trim();
+    const slug = normalizeSlug(String(body.slug || body.name || ""));
+
+    if (!name) {
+      throw new Error("Informe o nome do restaurante.");
+    }
+
+    if (!slug) {
+      throw new Error("Informe um slug válido.");
+    }
+
+    const { data: restaurant, error: restaurantError } = await supabase
+      .from("restaurants")
+      .insert({
+        name,
+        slug,
+        setup_status: "PENDING",
+      })
+      .select("id, name, slug, is_active, setup_status, created_at, updated_at")
+      .single();
+
+    if (restaurantError) {
+      throw new Error(restaurantError.message);
+    }
 
     return NextResponse.json(
       {

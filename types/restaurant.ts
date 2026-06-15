@@ -1,8 +1,11 @@
+export type RestaurantSetupStatus = "PENDING" | "ACTIVE" | "SUSPENDED";
+
 export type Restaurant = {
   id: string;
   name: string;
   slug: string;
   is_active: boolean;
+  setup_status: RestaurantSetupStatus;
   created_at: string;
   updated_at: string;
 };
@@ -20,7 +23,7 @@ export type RestaurantSettings = {
 
 export type CreateRestaurantInput = {
   name: string;
-  slug: string;
+  slug?: string;
 };
 
 export type RestaurantListItem = {
@@ -28,5 +31,11 @@ export type RestaurantListItem = {
   name: string;
   slug: string;
   is_active: boolean;
+  setup_status: RestaurantSetupStatus;
   created_at: string;
+};
+
+export type DefaultRestaurantSetup = {
+  tables: string[];
+  categories: string[];
 };
