@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { CategoryList } from "@/components/manager/CategoryList";
 import { CreateCategoryForm } from "@/components/manager/CreateCategoryForm";
+import { CreateProductForm } from "@/components/manager/CreateProductForm";
+import { ProductList } from "@/components/manager/ProductList";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -10,6 +12,7 @@ import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
 import { Category } from "@/types/category";
+import { Product } from "@/types/product";
 import { Restaurant } from "@/types/restaurant";
 
 type ManagerRestaurantOverview = {
@@ -31,6 +34,7 @@ export default function ManagerPage() {
   const [userName, setUserName] = useState("");
   const [overview, setOverview] = useState<ManagerRestaurantOverview | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     async function initializePage() {
@@ -58,6 +62,7 @@ export default function ManagerPage() {
         await Promise.all([
           loadRestaurantOverview(),
           loadCategories(),
+          loadProducts(),
         ]);
       } catch {
         window.location.replace("/login");
@@ -120,6 +125,23 @@ export default function ManagerPage() {
     setCategories(data.categories ?? []);
   }
 
+  async function loadProducts() {
+    const accessToken = await getAccessToken();
+
+    const response = await fetch("/api/products", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar produtos.");
+    }
+
+    const data = await response.json();
+    setProducts(data.products ?? []);
+  }
+
   function handleCategoryCreated(category: Category) {
     setCategories((currentCategories) => [
       ...currentCategories,
@@ -134,6 +156,13 @@ export default function ManagerPage() {
           }
         : currentOverview,
     );
+  }
+
+  function handleProductCreated(product: Product) {
+    setProducts((currentProducts) => [
+      ...currentProducts,
+      product,
+    ]);
   }
 
   async function handleLogout() {
@@ -198,7 +227,7 @@ export default function ManagerPage() {
               <Badge>{getStatusLabel(overview.restaurant.setup_status)}</Badge>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
                 <p className="text-sm text-zinc-400">Mesas cadastradas</p>
                 <p className="mt-2 text-3xl font-bold">
@@ -210,6 +239,13 @@ export default function ManagerPage() {
                 <p className="text-sm text-zinc-400">Categorias cadastradas</p>
                 <p className="mt-2 text-3xl font-bold">
                   {overview.categoriesCount}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
+                <p className="text-sm text-zinc-400">Produtos cadastrados</p>
+                <p className="mt-2 text-3xl font-bold">
+                  {products.length}
                 </p>
               </div>
             </div>
@@ -227,6 +263,22 @@ export default function ManagerPage() {
           </div>
 
           <CategoryList categories={categories} />
+        </Card>
+
+        <CreateProductForm
+          categories={categories.filter((category) => category.is_active)}
+          onCreated={handleProductCreated}
+        />
+
+        <Card>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Produtos</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              Produtos cadastrados para o cardápio deste restaurante.
+            </p>
+          </div>
+
+          <ProductList products={products} />
         </Card>
       </section>
     </main>
