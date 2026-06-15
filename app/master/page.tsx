@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CreateRestaurantForm } from "@/components/master/CreateRestaurantForm";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { isSuperAdmin } from "@/lib/auth/profile-service";
@@ -60,6 +61,13 @@ export default function MasterPage() {
     setRestaurants(data.restaurants ?? []);
   }
 
+  function handleRestaurantCreated(restaurant: Restaurant) {
+    setRestaurants((currentRestaurants) => [
+      restaurant,
+      ...currentRestaurants,
+    ]);
+  }
+
   async function handleLogout() {
     await signOut();
     window.location.replace("/login");
@@ -79,8 +87,8 @@ export default function MasterPage() {
 
   return (
     <main className="min-h-screen bg-zinc-950 p-8 text-white">
-      <section className="mx-auto max-w-6xl">
-        <div className="mb-8 flex items-start justify-between gap-4">
+      <section className="mx-auto max-w-6xl space-y-6">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-orange-400">Painel Master</p>
 
@@ -102,21 +110,14 @@ export default function MasterPage() {
           </button>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold">Restaurantes</h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                Lista de clientes cadastrados no Quitéria.
-              </p>
-            </div>
+        <CreateRestaurantForm onCreated={handleRestaurantCreated} />
 
-            <button
-              type="button"
-              className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-400"
-            >
-              Novo Restaurante
-            </button>
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Restaurantes</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              Lista de clientes cadastrados no Quitéria.
+            </p>
           </div>
 
           {restaurants.length === 0 ? (
