@@ -5,6 +5,7 @@ import { CategoryList } from "@/components/manager/CategoryList";
 import { CreateCategoryForm } from "@/components/manager/CreateCategoryForm";
 import { CreateProductForm } from "@/components/manager/CreateProductForm";
 import { ProductList } from "@/components/manager/ProductList";
+import { TableGrid } from "@/components/manager/TableGrid";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -14,6 +15,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Category } from "@/types/category";
 import { Product } from "@/types/product";
 import { Restaurant } from "@/types/restaurant";
+import { RestaurantTable } from "@/types/table";
 
 type ManagerRestaurantOverview = {
   restaurant: Restaurant;
@@ -35,6 +37,7 @@ export default function ManagerPage() {
   const [overview, setOverview] = useState<ManagerRestaurantOverview | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [tables, setTables] = useState<RestaurantTable[]>([]);
 
   useEffect(() => {
     async function initializePage() {
@@ -63,6 +66,7 @@ export default function ManagerPage() {
           loadRestaurantOverview(),
           loadCategories(),
           loadProducts(),
+          loadTables(),
         ]);
       } catch {
         window.location.replace("/login");
@@ -142,11 +146,25 @@ export default function ManagerPage() {
     setProducts(data.products ?? []);
   }
 
+  async function loadTables() {
+    const accessToken = await getAccessToken();
+
+    const response = await fetch("/api/tables", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar mesas.");
+    }
+
+    const data = await response.json();
+    setTables(data.tables ?? []);
+  }
+
   function handleCategoryCreated(category: Category) {
-    setCategories((currentCategories) => [
-      ...currentCategories,
-      category,
-    ]);
+    setCategories((currentCategories) => [...currentCategories, category]);
 
     setOverview((currentOverview) =>
       currentOverview
@@ -159,10 +177,7 @@ export default function ManagerPage() {
   }
 
   function handleProductCreated(product: Product) {
-    setProducts((currentProducts) => [
-      ...currentProducts,
-      product,
-    ]);
+    setProducts((currentProducts) => [...currentProducts, product]);
   }
 
   async function handleLogout() {
@@ -251,6 +266,17 @@ export default function ManagerPage() {
             </div>
           </Card>
         )}
+
+        <Card>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Mesas</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              Mesas cadastradas e tokens de QR Code do restaurante.
+            </p>
+          </div>
+
+          <TableGrid tables={tables} />
+        </Card>
 
         <CreateCategoryForm onCreated={handleCategoryCreated} />
 
