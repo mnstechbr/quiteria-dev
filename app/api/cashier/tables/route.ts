@@ -12,6 +12,17 @@ const ACTIVE_SESSION_STATUSES = [
 ];
 
 const VALID_PAYMENT_METHODS = ["PIX", "CARD", "CASH"];
+const BILLABLE_ORDER_STATUSES = [
+  "RECEIVED",
+  "IN_PROGRESS",
+  "READY",
+  "DELIVERED",
+];
+
+type OrderForTotal = {
+  status: string;
+  total_amount: number | string | null;
+};
 
 async function requireCashierAccess(request: Request) {
   const token = getBearerToken(request);
@@ -59,25 +70,37 @@ function getOperationalStatus(sessionStatus?: string | null) {
   return "AVAILABLE";
 }
 
+function getBillableTotal(orders: OrderForTotal[] = []) {
+  return orders.reduce((sum, order) => {
+    if (!BILLABLE_ORDER_STATUSES.includes(order.status)) {
+      return sum;
+    }
+
+    return sum + Number(order.total_amount ?? 0);
+  }, 0);
+}
+
 function normalizeBill(session: any) {
   const orders = session.orders ?? [];
 
-  const normalizedOrders = orders.map((order: any) => ({
-    id: order.id,
-    status: order.status,
-    total_amount: Number(order.total_amount ?? 0),
-    created_at: order.created_at,
-    items: (order.order_items ?? []).map((item: any) => ({
-      id: item.id,
-      product_name: item.product_name,
-      quantity: Number(item.quantity ?? 0),
-      unit_price: Number(item.unit_price ?? 0),
-      total_price: Number(item.total_price ?? 0),
-      notes: item.notes,
-      preparation_area: item.preparation_area,
-      status: item.status,
-    })),
-  }));
+  const normalizedOrders = orders
+    .filter((order: any) => BILLABLE_ORDER_STATUSES.includes(order.status))
+    .map((order: any) => ({
+      id: order.id,
+      status: order.status,
+      total_amount: Number(order.total_amount ?? 0),
+      created_at: order.created_at,
+      items: (order.order_items ?? []).map((item: any) => ({
+        id: item.id,
+        product_name: item.product_name,
+        quantity: Number(item.quantity ?? 0),
+        unit_price: Number(item.unit_price ?? 0),
+        total_price: Number(item.total_price ?? 0),
+        notes: item.notes,
+        preparation_area: item.preparation_area,
+        status: item.status,
+      })),
+    }));
 
   const totalAmount = normalizedOrders.reduce(
     (sum: number, order: any) => sum + Number(order.total_amount ?? 0),
@@ -111,7 +134,18 @@ export async function GET(request: Request) {
 
     const { data: sessions, error: sessionsError } = await supabaseAdmin
       .from("table_sessions")
-      .select("id, table_id, status")
+      .select(
+        `
+          id,
+          table_id,
+          status,
+          orders (
+            id,
+            status,
+            total_amount
+          )
+        `,
+      )
       .eq("restaurant_id", restaurantId)
       .in("status", ACTIVE_SESSION_STATUSES);
 
@@ -121,13 +155,16 @@ export async function GET(request: Request) {
 
     const tablesWithStatus = (tables ?? []).map((table) => {
       const activeSession = (sessions ?? []).find(
-        (session) => session.table_id === table.id,
+        (session: any) => session.table_id === table.id,
       );
 
       return {
         ...table,
         operational_status: getOperationalStatus(activeSession?.status),
         active_session_id: activeSession?.id ?? null,
+        active_session_total_amount: getBillableTotal(
+          activeSession?.orders ?? [],
+        ),
       };
     });
 
@@ -200,6 +237,7 @@ export async function PATCH(request: Request) {
     const sessionId = String(body.sessionId ?? "").trim();
     const paymentMethod = String(body.paymentMethod ?? "").trim();
     const action = String(body.action ?? "").trim();
+    const servicePercent = Number(body.servicePercent ?? 0);
 
     if (action !== "CLOSE_BILL") {
       throw new Error("Ação inválida.");
@@ -211,6 +249,10 @@ export async function PATCH(request: Request) {
 
     if (!VALID_PAYMENT_METHODS.includes(paymentMethod)) {
       throw new Error("Selecione uma forma de pagamento válida.");
+    }
+
+    if (!Number.isFinite(servicePercent) || servicePercent < 0 || servicePercent > 100) {
+      throw new Error("Informe uma porcentagem de serviço válida.");
     }
 
     const { data: session, error: sessionError } = await supabaseAdmin
@@ -231,33 +273,38 @@ export async function PATCH(request: Request) {
 
     const { data: orders, error: ordersError } = await supabaseAdmin
       .from("orders")
-      .select("id, total_amount")
+      .select("id, status, total_amount")
       .eq("restaurant_id", restaurantId)
-      .eq("table_session_id", sessionId)
-      .neq("status", "CANCELLED");
+      .eq("table_session_id", sessionId);
 
     if (ordersError) {
       throw new Error(ordersError.message);
     }
 
-    const totalAmount = (orders ?? []).reduce(
-      (sum, order) => sum + Number(order.total_amount ?? 0),
-      0,
+    const subtotalAmount = getBillableTotal(orders ?? []);
+    const serviceAmount = Number(
+      ((subtotalAmount * servicePercent) / 100).toFixed(2),
     );
+    const finalAmount = Number((subtotalAmount + serviceAmount).toFixed(2));
 
     const { data: closedSession, error: closeError } = await supabaseAdmin
       .from("table_sessions")
       .update({
         status: "CLOSED",
         closed_at: new Date().toISOString(),
-        total_amount: totalAmount,
+        total_amount: finalAmount,
         payment_method: paymentMethod,
+        service_percent: servicePercent,
+        service_amount: serviceAmount,
+        final_amount: finalAmount,
         paid_at: new Date().toISOString(),
         closed_by: userId,
       })
       .eq("id", sessionId)
       .eq("restaurant_id", restaurantId)
-      .select("id, table_id, status, closed_at, total_amount")
+      .select(
+        "id, table_id, status, closed_at, total_amount, payment_method, service_percent, service_amount, final_amount",
+      )
       .single();
 
     if (closeError) {
@@ -273,7 +320,10 @@ export async function PATCH(request: Request) {
       metadata: {
         table_id: session.table_id,
         payment_method: paymentMethod,
-        total_amount: totalAmount,
+        subtotal_amount: subtotalAmount,
+        service_percent: servicePercent,
+        service_amount: serviceAmount,
+        final_amount: finalAmount,
       },
     });
 
@@ -284,9 +334,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json(
       {
         message:
-          error instanceof Error
-            ? error.message
-            : "Erro ao fechar conta.",
+          error instanceof Error ? error.message : "Erro ao fechar conta.",
       },
       { status: 400 },
     );

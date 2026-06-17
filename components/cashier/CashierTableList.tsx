@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TableWithStatus } from "@/types/table";
 
+type CashierTable = TableWithStatus & {
+  active_session_total_amount?: number;
+};
+
 type CashierBillItem = {
   id: string;
   product_name: string;
@@ -36,10 +40,14 @@ export type CashierBill = {
 };
 
 type CashierTableListProps = {
-  tables: TableWithStatus[];
+  tables: CashierTable[];
   bills: CashierBill[];
   closingSessionId: string | null;
-  onCloseBill: (sessionId: string, paymentMethod: string) => void;
+  onCloseBill: (
+    sessionId: string,
+    paymentMethod: string,
+    servicePercent: number,
+  ) => void;
 };
 
 function formatCurrency(value: number) {
@@ -77,6 +85,14 @@ function getStatusInfo(status: TableWithStatus["operational_status"]) {
   };
 }
 
+function calculateServiceAmount(subtotal: number, percent: number) {
+  if (!Number.isFinite(percent) || percent <= 0) {
+    return 0;
+  }
+
+  return Number(((subtotal * percent) / 100).toFixed(2));
+}
+
 export function CashierTableList({
   tables,
   bills,
@@ -86,11 +102,15 @@ export function CashierTableList({
   const [paymentMethods, setPaymentMethods] = useState<Record<string, string>>(
     {},
   );
+  const [servicePercents, setServicePercents] = useState<Record<string, string>>(
+    {},
+  );
 
   const tableSummary = useMemo(() => {
     return tables.reduce(
       (summary, table) => {
         summary.total += 1;
+        summary.totalConsumption += Number(table.active_session_total_amount ?? 0);
 
         if (table.operational_status === "AVAILABLE") summary.available += 1;
         if (table.operational_status === "PENDING_APPROVAL") summary.pending += 1;
@@ -105,6 +125,7 @@ export function CashierTableList({
         pending: 0,
         open: 0,
         bill: 0,
+        totalConsumption: 0,
       },
     );
   }, [tables]);
@@ -116,17 +137,24 @@ export function CashierTableList({
     }));
   }
 
+  function handleServicePercentChange(sessionId: string, value: string) {
+    setServicePercents((current) => ({
+      ...current,
+      [sessionId]: value,
+    }));
+  }
+
   return (
     <div className="space-y-6">
       <Card>
         <div className="mb-6">
           <h2 className="text-xl font-semibold">Mapa das mesas</h2>
           <p className="mt-1 text-sm text-zinc-400">
-            Visualização somente leitura para o caixa acompanhar a operação.
+            Visualização somente leitura para o caixa acompanhar a operação e o consumo em tempo real.
           </p>
         </div>
 
-        <div className="mb-6 grid gap-3 md:grid-cols-4">
+        <div className="mb-6 grid gap-3 md:grid-cols-5">
           <div className="rounded-2xl border border-emerald-300/40 bg-emerald-300/10 p-4 text-sm text-emerald-200">
             Disponíveis: {tableSummary.available}
           </div>
@@ -139,11 +167,15 @@ export function CashierTableList({
           <div className="rounded-2xl border border-red-400/40 bg-red-400/10 p-4 text-sm text-red-200">
             Contas: {tableSummary.bill}
           </div>
+          <div className="rounded-2xl border border-orange-400/40 bg-orange-400/10 p-4 text-sm text-orange-200">
+            Consumo ativo: {formatCurrency(tableSummary.totalConsumption)}
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
           {tables.map((table) => {
             const statusInfo = getStatusInfo(table.operational_status);
+            const consumption = Number(table.active_session_total_amount ?? 0);
 
             return (
               <div
@@ -152,6 +184,10 @@ export function CashierTableList({
               >
                 <p className="font-semibold text-white">{table.name}</p>
                 <p className="mt-2 text-xs font-medium">{statusInfo.label}</p>
+                <p className="mt-4 text-xs text-zinc-300">Consumo</p>
+                <p className="mt-1 text-lg font-bold text-white">
+                  {formatCurrency(consumption)}
+                </p>
               </div>
             );
           })}
@@ -176,6 +212,13 @@ export function CashierTableList({
           <div className="space-y-4">
             {bills.map((bill) => {
               const selectedPaymentMethod = paymentMethods[bill.session_id] ?? "";
+              const servicePercentValue = servicePercents[bill.session_id] ?? "10";
+              const servicePercent = Number(servicePercentValue || 0);
+              const serviceAmount = calculateServiceAmount(
+                bill.total_amount,
+                servicePercent,
+              );
+              const finalAmount = bill.total_amount + serviceAmount;
               const isClosing = closingSessionId === bill.session_id;
 
               return (
@@ -191,7 +234,7 @@ export function CashierTableList({
                       </p>
                     </div>
 
-                    <Badge>{formatCurrency(bill.total_amount)}</Badge>
+                    <Badge>{formatCurrency(finalAmount)}</Badge>
                   </div>
 
                   <div className="space-y-3">
@@ -236,6 +279,51 @@ export function CashierTableList({
                     ))}
                   </div>
 
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-zinc-950/60 p-4">
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div>
+                        <p className="text-xs text-zinc-500">Subtotal</p>
+                        <p className="mt-1 text-lg font-semibold text-white">
+                          {formatCurrency(bill.total_amount)}
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="text-xs text-zinc-500">
+                          Taxa de serviço (%)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={servicePercentValue}
+                          onChange={(event) =>
+                            handleServicePercentChange(
+                              bill.session_id,
+                              event.target.value,
+                            )
+                          }
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-orange-500"
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-zinc-500">Taxa calculada</p>
+                        <p className="mt-1 text-lg font-semibold text-white">
+                          {formatCurrency(serviceAmount)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                      <p className="text-sm text-zinc-400">Total final</p>
+                      <p className="text-2xl font-bold text-orange-400">
+                        {formatCurrency(finalAmount)}
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
                     <select
                       value={selectedPaymentMethod}
@@ -257,7 +345,11 @@ export function CashierTableList({
                       type="button"
                       disabled={!selectedPaymentMethod || isClosing}
                       onClick={() =>
-                        onCloseBill(bill.session_id, selectedPaymentMethod)
+                        onCloseBill(
+                          bill.session_id,
+                          selectedPaymentMethod,
+                          servicePercent,
+                        )
                       }
                     >
                       {isClosing ? "Finalizando..." : "Finalizar pagamento"}

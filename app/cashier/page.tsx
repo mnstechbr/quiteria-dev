@@ -89,7 +89,11 @@ export default function CashierPage() {
     setBills(data.bills ?? []);
   }
 
-  async function handleCloseBill(sessionId: string, paymentMethod: string) {
+  async function handleCloseBill(
+    sessionId: string,
+    paymentMethod: string,
+    servicePercent: number,
+  ) {
     try {
       setMessage(null);
       setClosingSessionId(sessionId);
@@ -106,6 +110,7 @@ export default function CashierPage() {
           action: "CLOSE_BILL",
           sessionId,
           paymentMethod,
+          servicePercent,
         }),
       });
 
