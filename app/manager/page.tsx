@@ -213,7 +213,8 @@ export default function ManagerPage() {
             ? {
                 ...table,
                 operational_status: "OPEN",
-                active_session_id: data.table?.active_session_id ?? table.active_session_id,
+                active_session_id:
+                  data.table?.active_session_id ?? table.active_session_id,
               }
             : table,
         ),
@@ -222,9 +223,7 @@ export default function ManagerPage() {
       setTableMessage("Mesa aprovada com sucesso.");
     } catch (error) {
       setTableMessage(
-        error instanceof Error
-          ? error.message
-          : "Erro ao aprovar mesa.",
+        error instanceof Error ? error.message : "Erro ao aprovar mesa.",
       );
     } finally {
       setApprovingTableId(null);
@@ -261,9 +260,7 @@ export default function ManagerPage() {
               Quitéria
             </h1>
 
-            <p className="mt-3 text-zinc-400">
-              Bem-vindo, {userName}.
-            </p>
+            <p className="mt-3 text-zinc-400">Bem-vindo, {userName}.</p>
           </div>
 
           <Button
@@ -310,9 +307,7 @@ export default function ManagerPage() {
 
               <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
                 <p className="text-sm text-zinc-400">Produtos cadastrados</p>
-                <p className="mt-2 text-3xl font-bold">
-                  {products.length}
-                </p>
+                <p className="mt-2 text-3xl font-bold">{products.length}</p>
               </div>
             </div>
           </Card>
@@ -322,13 +317,11 @@ export default function ManagerPage() {
           <div className="mb-6">
             <h2 className="text-xl font-semibold">Mesas</h2>
             <p className="mt-1 text-sm text-zinc-400">
-              Mesas cadastradas, QR Codes e status operacional do restaurante.
+              Mesas cadastradas e tokens de QR Code do restaurante.
             </p>
 
             {tableMessage && (
-              <p className="mt-3 text-sm text-zinc-300">
-                {tableMessage}
-              </p>
+              <p className="mt-3 text-sm text-zinc-300">{tableMessage}</p>
             )}
           </div>
 

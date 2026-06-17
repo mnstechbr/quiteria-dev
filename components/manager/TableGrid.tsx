@@ -53,8 +53,7 @@ export function TableGrid({
     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
       {tables.map((table) => {
         const statusInfo = getTableStatusInfo(table.operational_status);
-        const isPendingApproval =
-          table.operational_status === "PENDING_APPROVAL";
+        const isPendingApproval = table.operational_status === "PENDING_APPROVAL";
         const isApproving = approvingTableId === table.id;
 
         return (
@@ -71,9 +70,7 @@ export function TableGrid({
                 </p>
               </div>
 
-              <span
-                className={`mt-1 h-3 w-3 rounded-full ${statusInfo.dot}`}
-              />
+              <span className={`mt-1 h-3 w-3 rounded-full ${statusInfo.dot}`} />
             </div>
 
             <p className="mt-3 text-xs text-zinc-500">
