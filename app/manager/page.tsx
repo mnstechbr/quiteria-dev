@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CategoryList } from "@/components/manager/CategoryList";
 import { CreateCategoryForm } from "@/components/manager/CreateCategoryForm";
 import { CreateProductForm } from "@/components/manager/CreateProductForm";
+import { ManagerDashboard, ManagerDashboardData } from "@/components/manager/ManagerDashboard";
 import { PendingOrdersList } from "@/components/manager/PendingOrdersList";
 import { ProductList } from "@/components/manager/ProductList";
 import { TableGrid } from "@/components/manager/TableGrid";
@@ -37,6 +38,7 @@ export default function ManagerPage() {
   const [allowed, setAllowed] = useState(false);
   const [userName, setUserName] = useState("");
   const [overview, setOverview] = useState<ManagerRestaurantOverview | null>(null);
+  const [dashboard, setDashboard] = useState<ManagerDashboardData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [tables, setTables] = useState<TableWithStatus[]>([]);
@@ -72,7 +74,8 @@ export default function ManagerPage() {
         setUserName(session.profile?.full_name ?? session.user.email ?? "Gerente");
         setAllowed(true);
 
-        await Promise.all([
+        await Promise.allSettled([
+          loadDashboard(),
           loadRestaurantOverview(),
           loadCategories(),
           loadProducts(),
@@ -99,6 +102,23 @@ export default function ManagerPage() {
     }
 
     return session.access_token;
+  }
+
+  async function loadDashboard() {
+    const accessToken = await getAccessToken();
+
+    const response = await fetch("/api/manager/dashboard", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar dashboard.");
+    }
+
+    const data = await response.json();
+    setDashboard(data.dashboard ?? null);
   }
 
   async function loadRestaurantOverview() {
@@ -191,6 +211,14 @@ export default function ManagerPage() {
     setPendingOrders(data.orders ?? []);
   }
 
+  async function refreshOperationalData() {
+    await Promise.allSettled([
+      loadDashboard(),
+      loadTables(),
+      loadPendingOrders(),
+    ]);
+  }
+
   async function updateTableStatus({
     tableId,
     action,
@@ -231,7 +259,8 @@ export default function ManagerPage() {
           table.id === tableId
             ? {
                 ...table,
-                operational_status: data.table?.operational_status ?? table.operational_status,
+                operational_status:
+                  data.table?.operational_status ?? table.operational_status,
                 active_session_id:
                   data.table?.active_session_id ?? table.active_session_id,
               }
@@ -240,11 +269,10 @@ export default function ManagerPage() {
       );
 
       setTableMessage(successMessage);
+      await loadDashboard().catch(() => null);
     } catch (error) {
       setTableMessage(
-        error instanceof Error
-          ? error.message
-          : "Erro ao atualizar mesa.",
+        error instanceof Error ? error.message : "Erro ao atualizar mesa.",
       );
     } finally {
       loadingSetter(null);
@@ -281,11 +309,10 @@ export default function ManagerPage() {
       );
 
       setOrderMessage("Pedido aprovado e enviado para produção.");
+      await refreshOperationalData();
     } catch (error) {
       setOrderMessage(
-        error instanceof Error
-          ? error.message
-          : "Erro ao aprovar pedido.",
+        error instanceof Error ? error.message : "Erro ao aprovar pedido.",
       );
     } finally {
       setApprovingOrderId(null);
@@ -366,9 +393,7 @@ export default function ManagerPage() {
               Quitéria
             </h1>
 
-            <p className="mt-3 text-zinc-400">
-              Bem-vindo, {userName}.
-            </p>
+            <p className="mt-3 text-zinc-400">Bem-vindo, {userName}.</p>
           </div>
 
           <Button
@@ -379,6 +404,8 @@ export default function ManagerPage() {
             Sair
           </Button>
         </div>
+
+        <ManagerDashboard dashboard={dashboard} />
 
         {overview && (
           <Card>
@@ -415,9 +442,7 @@ export default function ManagerPage() {
 
               <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
                 <p className="text-sm text-zinc-400">Produtos cadastrados</p>
-                <p className="mt-2 text-3xl font-bold">
-                  {products.length}
-                </p>
+                <p className="mt-2 text-3xl font-bold">{products.length}</p>
               </div>
             </div>
           </Card>
@@ -431,9 +456,7 @@ export default function ManagerPage() {
             </p>
 
             {orderMessage && (
-              <p className="mt-3 text-sm text-zinc-300">
-                {orderMessage}
-              </p>
+              <p className="mt-3 text-sm text-zinc-300">{orderMessage}</p>
             )}
           </div>
 
@@ -452,9 +475,7 @@ export default function ManagerPage() {
             </p>
 
             {tableMessage && (
-              <p className="mt-3 text-sm text-zinc-300">
-                {tableMessage}
-              </p>
+              <p className="mt-3 text-sm text-zinc-300">{tableMessage}</p>
             )}
           </div>
 
