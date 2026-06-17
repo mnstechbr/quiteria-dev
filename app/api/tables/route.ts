@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { getBearerToken } from "@/lib/auth/request-auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+const ACTIVE_SESSION_STATUSES = [
+  "PENDING_APPROVAL",
+  "OPEN",
+  "BILL_REQUESTED",
+];
+
 async function requireManager(request: Request) {
   const token = getBearerToken(request);
 
@@ -34,6 +40,7 @@ async function requireManager(request: Request) {
 
   return {
     supabase,
+    userId: user.id,
     restaurantId: membership.restaurant_id,
   };
 }
@@ -69,7 +76,7 @@ export async function GET(request: Request) {
       .from("table_sessions")
       .select("id, table_id, status")
       .eq("restaurant_id", restaurantId)
-      .in("status", ["PENDING_APPROVAL", "OPEN", "BILL_REQUESTED"]);
+      .in("status", ACTIVE_SESSION_STATUSES);
 
     if (sessionsError) {
       throw new Error(sessionsError.message);
@@ -105,7 +112,7 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const { supabase, restaurantId } = await requireManager(request);
+    const { supabase, restaurantId, userId } = await requireManager(request);
     const body = await request.json();
 
     const tableId = String(body.tableId ?? "").trim();
@@ -115,49 +122,92 @@ export async function PATCH(request: Request) {
       throw new Error("Informe a mesa.");
     }
 
-    if (action !== "REGENERATE_QR") {
-      throw new Error("Ação inválida.");
+    if (action === "REGENERATE_QR") {
+      const { data: activeSession, error: sessionError } = await supabase
+        .from("table_sessions")
+        .select("id, status")
+        .eq("restaurant_id", restaurantId)
+        .eq("table_id", tableId)
+        .in("status", ACTIVE_SESSION_STATUSES)
+        .maybeSingle();
+
+      if (sessionError) {
+        throw new Error(sessionError.message);
+      }
+
+      if (activeSession) {
+        throw new Error(
+          "Não é possível gerar um novo QR enquanto a mesa possui uma sessão ativa.",
+        );
+      }
+
+      const { data: updatedTable, error: updateError } = await supabase
+        .from("tables")
+        .update({
+          qr_token: createQrToken(),
+        })
+        .eq("id", tableId)
+        .eq("restaurant_id", restaurantId)
+        .select("id, restaurant_id, name, qr_token, is_active, created_at")
+        .single();
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      return NextResponse.json({
+        table: {
+          ...updatedTable,
+          operational_status: "AVAILABLE",
+          active_session_id: null,
+        },
+      });
     }
 
-    const { data: activeSession, error: sessionError } = await supabase
-      .from("table_sessions")
-      .select("id, status")
-      .eq("restaurant_id", restaurantId)
-      .eq("table_id", tableId)
-      .in("status", ["PENDING_APPROVAL", "OPEN", "BILL_REQUESTED"])
-      .maybeSingle();
+    if (action === "APPROVE_SESSION") {
+      const { data: pendingSession, error: pendingSessionError } =
+        await supabase
+          .from("table_sessions")
+          .select("id, table_id, status")
+          .eq("restaurant_id", restaurantId)
+          .eq("table_id", tableId)
+          .eq("status", "PENDING_APPROVAL")
+          .maybeSingle();
 
-    if (sessionError) {
-      throw new Error(sessionError.message);
+      if (pendingSessionError) {
+        throw new Error(pendingSessionError.message);
+      }
+
+      if (!pendingSession) {
+        throw new Error("Nenhuma sessão aguardando aprovação foi encontrada.");
+      }
+
+      const { data: approvedSession, error: approveError } = await supabase
+        .from("table_sessions")
+        .update({
+          status: "OPEN",
+          approved_by: userId,
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", pendingSession.id)
+        .eq("restaurant_id", restaurantId)
+        .select("id, table_id, status")
+        .single();
+
+      if (approveError) {
+        throw new Error(approveError.message);
+      }
+
+      return NextResponse.json({
+        table: {
+          id: tableId,
+          operational_status: "OPEN",
+          active_session_id: approvedSession.id,
+        },
+      });
     }
 
-    if (activeSession) {
-      throw new Error(
-        "Não é possível gerar um novo QR enquanto a mesa possui uma sessão ativa.",
-      );
-    }
-
-    const { data: updatedTable, error: updateError } = await supabase
-      .from("tables")
-      .update({
-        qr_token: createQrToken(),
-      })
-      .eq("id", tableId)
-      .eq("restaurant_id", restaurantId)
-      .select("id, restaurant_id, name, qr_token, is_active, created_at")
-      .single();
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-
-    return NextResponse.json({
-      table: {
-        ...updatedTable,
-        operational_status: "AVAILABLE",
-        active_session_id: null,
-      },
-    });
+    throw new Error("Ação inválida.");
   } catch (error) {
     return NextResponse.json(
       {

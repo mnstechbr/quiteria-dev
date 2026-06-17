@@ -4,6 +4,8 @@ import { TableWithStatus } from "@/types/table";
 
 type TableGridProps = {
   tables: TableWithStatus[];
+  approvingTableId: string | null;
+  onApproveSession: (tableId: string) => void;
 };
 
 function getTableStatusInfo(status: TableWithStatus["operational_status"]) {
@@ -42,11 +44,18 @@ function getTableStatusInfo(status: TableWithStatus["operational_status"]) {
   };
 }
 
-export function TableGrid({ tables }: TableGridProps) {
+export function TableGrid({
+  tables,
+  approvingTableId,
+  onApproveSession,
+}: TableGridProps) {
   return (
     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
       {tables.map((table) => {
         const statusInfo = getTableStatusInfo(table.operational_status);
+        const isPendingApproval =
+          table.operational_status === "PENDING_APPROVAL";
+        const isApproving = approvingTableId === table.id;
 
         return (
           <div
@@ -74,6 +83,17 @@ export function TableGrid({ tables }: TableGridProps) {
             <p className="mt-3 truncate text-xs text-zinc-600">
               QR: {table.qr_token}
             </p>
+
+            {isPendingApproval && (
+              <button
+                type="button"
+                disabled={isApproving}
+                onClick={() => onApproveSession(table.id)}
+                className="mt-4 w-full rounded-xl bg-yellow-300 px-3 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isApproving ? "Aprovando..." : "Aprovar mesa"}
+              </button>
+            )}
           </div>
         );
       })}

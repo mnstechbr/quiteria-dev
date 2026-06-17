@@ -15,7 +15,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Category } from "@/types/category";
 import { Product } from "@/types/product";
 import { Restaurant } from "@/types/restaurant";
-import { RestaurantTable } from "@/types/table";
+import { TableWithStatus } from "@/types/table";
 
 type ManagerRestaurantOverview = {
   restaurant: Restaurant;
@@ -37,7 +37,9 @@ export default function ManagerPage() {
   const [overview, setOverview] = useState<ManagerRestaurantOverview | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [tables, setTables] = useState<RestaurantTable[]>([]);
+  const [tables, setTables] = useState<TableWithStatus[]>([]);
+  const [approvingTableId, setApprovingTableId] = useState<string | null>(null);
+  const [tableMessage, setTableMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function initializePage() {
@@ -180,6 +182,55 @@ export default function ManagerPage() {
     setProducts((currentProducts) => [...currentProducts, product]);
   }
 
+  async function handleApproveTableSession(tableId: string) {
+    try {
+      setApprovingTableId(tableId);
+      setTableMessage(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/tables", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          tableId,
+          action: "APPROVE_SESSION",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao aprovar mesa.");
+      }
+
+      setTables((currentTables) =>
+        currentTables.map((table) =>
+          table.id === tableId
+            ? {
+                ...table,
+                operational_status: "OPEN",
+                active_session_id: data.table?.active_session_id ?? table.active_session_id,
+              }
+            : table,
+        ),
+      );
+
+      setTableMessage("Mesa aprovada com sucesso.");
+    } catch (error) {
+      setTableMessage(
+        error instanceof Error
+          ? error.message
+          : "Erro ao aprovar mesa.",
+      );
+    } finally {
+      setApprovingTableId(null);
+    }
+  }
+
   async function handleLogout() {
     await signOut();
     window.location.replace("/login");
@@ -271,11 +322,21 @@ export default function ManagerPage() {
           <div className="mb-6">
             <h2 className="text-xl font-semibold">Mesas</h2>
             <p className="mt-1 text-sm text-zinc-400">
-              Mesas cadastradas e tokens de QR Code do restaurante.
+              Mesas cadastradas, QR Codes e status operacional do restaurante.
             </p>
+
+            {tableMessage && (
+              <p className="mt-3 text-sm text-zinc-300">
+                {tableMessage}
+              </p>
+            )}
           </div>
 
-          <TableGrid tables={tables} />
+          <TableGrid
+            tables={tables}
+            approvingTableId={approvingTableId}
+            onApproveSession={handleApproveTableSession}
+          />
         </Card>
 
         <CreateCategoryForm onCreated={handleCategoryCreated} />
