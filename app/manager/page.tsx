@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CategoryList } from "@/components/manager/CategoryList";
 import { CreateCategoryForm } from "@/components/manager/CreateCategoryForm";
 import { CreateProductForm } from "@/components/manager/CreateProductForm";
+import { PendingOrdersList } from "@/components/manager/PendingOrdersList";
 import { ProductList } from "@/components/manager/ProductList";
 import { TableGrid } from "@/components/manager/TableGrid";
 import { Badge } from "@/components/ui/Badge";
@@ -13,6 +14,7 @@ import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
 import { Category } from "@/types/category";
+import { PendingOrder } from "@/types/order";
 import { Product } from "@/types/product";
 import { Restaurant } from "@/types/restaurant";
 import { TableWithStatus } from "@/types/table";
@@ -38,11 +40,14 @@ export default function ManagerPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [tables, setTables] = useState<TableWithStatus[]>([]);
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
 
   const [approvingTableId, setApprovingTableId] = useState<string | null>(null);
   const [requestingBillTableId, setRequestingBillTableId] = useState<string | null>(null);
   const [closingTableId, setClosingTableId] = useState<string | null>(null);
+  const [approvingOrderId, setApprovingOrderId] = useState<string | null>(null);
   const [tableMessage, setTableMessage] = useState<string | null>(null);
+  const [orderMessage, setOrderMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function initializePage() {
@@ -72,6 +77,7 @@ export default function ManagerPage() {
           loadCategories(),
           loadProducts(),
           loadTables(),
+          loadPendingOrders(),
         ]);
       } catch {
         window.location.replace("/login");
@@ -168,6 +174,23 @@ export default function ManagerPage() {
     setTables(data.tables ?? []);
   }
 
+  async function loadPendingOrders() {
+    const accessToken = await getAccessToken();
+
+    const response = await fetch("/api/manager/orders", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar pedidos pendentes.");
+    }
+
+    const data = await response.json();
+    setPendingOrders(data.orders ?? []);
+  }
+
   async function updateTableStatus({
     tableId,
     action,
@@ -225,6 +248,47 @@ export default function ManagerPage() {
       );
     } finally {
       loadingSetter(null);
+    }
+  }
+
+  async function handleApproveOrder(orderId: string) {
+    try {
+      setApprovingOrderId(orderId);
+      setOrderMessage(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/manager/orders", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          orderId,
+          action: "APPROVE_ORDER",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao aprovar pedido.");
+      }
+
+      setPendingOrders((currentOrders) =>
+        currentOrders.filter((order) => order.id !== orderId),
+      );
+
+      setOrderMessage("Pedido aprovado e enviado para produção.");
+    } catch (error) {
+      setOrderMessage(
+        error instanceof Error
+          ? error.message
+          : "Erro ao aprovar pedido.",
+      );
+    } finally {
+      setApprovingOrderId(null);
     }
   }
 
@@ -358,6 +422,27 @@ export default function ManagerPage() {
             </div>
           </Card>
         )}
+
+        <Card>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Pedidos aguardando aprovação</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              Aprove os pedidos antes de enviar para cozinha ou bar.
+            </p>
+
+            {orderMessage && (
+              <p className="mt-3 text-sm text-zinc-300">
+                {orderMessage}
+              </p>
+            )}
+          </div>
+
+          <PendingOrdersList
+            orders={pendingOrders}
+            approvingOrderId={approvingOrderId}
+            onApproveOrder={handleApproveOrder}
+          />
+        </Card>
 
         <Card>
           <div className="mb-6">
