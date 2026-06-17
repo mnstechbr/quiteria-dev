@@ -207,6 +207,85 @@ export async function PATCH(request: Request) {
       });
     }
 
+    if (action === "REQUEST_BILL") {
+      const { data: openSession, error: openSessionError } = await supabase
+        .from("table_sessions")
+        .select("id, table_id, status")
+        .eq("restaurant_id", restaurantId)
+        .eq("table_id", tableId)
+        .eq("status", "OPEN")
+        .maybeSingle();
+
+      if (openSessionError) {
+        throw new Error(openSessionError.message);
+      }
+
+      if (!openSession) {
+        throw new Error("Nenhuma sessão em atendimento foi encontrada.");
+      }
+
+      const { data: billSession, error: billError } = await supabase
+        .from("table_sessions")
+        .update({
+          status: "BILL_REQUESTED",
+        })
+        .eq("id", openSession.id)
+        .eq("restaurant_id", restaurantId)
+        .select("id, table_id, status")
+        .single();
+
+      if (billError) {
+        throw new Error(billError.message);
+      }
+
+      return NextResponse.json({
+        table: {
+          id: tableId,
+          operational_status: "BILL_REQUESTED",
+          active_session_id: billSession.id,
+        },
+      });
+    }
+
+    if (action === "CLOSE_SESSION") {
+      const { data: activeSession, error: activeSessionError } = await supabase
+        .from("table_sessions")
+        .select("id, table_id, status")
+        .eq("restaurant_id", restaurantId)
+        .eq("table_id", tableId)
+        .in("status", ["OPEN", "BILL_REQUESTED"])
+        .maybeSingle();
+
+      if (activeSessionError) {
+        throw new Error(activeSessionError.message);
+      }
+
+      if (!activeSession) {
+        throw new Error("Nenhuma sessão aberta foi encontrada para fechamento.");
+      }
+
+      const { error: closeError } = await supabase
+        .from("table_sessions")
+        .update({
+          status: "CLOSED",
+          closed_at: new Date().toISOString(),
+        })
+        .eq("id", activeSession.id)
+        .eq("restaurant_id", restaurantId);
+
+      if (closeError) {
+        throw new Error(closeError.message);
+      }
+
+      return NextResponse.json({
+        table: {
+          id: tableId,
+          operational_status: "AVAILABLE",
+          active_session_id: null,
+        },
+      });
+    }
+
     throw new Error("Ação inválida.");
   } catch (error) {
     return NextResponse.json(

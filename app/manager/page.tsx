@@ -38,7 +38,10 @@ export default function ManagerPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [tables, setTables] = useState<TableWithStatus[]>([]);
+
   const [approvingTableId, setApprovingTableId] = useState<string | null>(null);
+  const [requestingBillTableId, setRequestingBillTableId] = useState<string | null>(null);
+  const [closingTableId, setClosingTableId] = useState<string | null>(null);
   const [tableMessage, setTableMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -165,6 +168,66 @@ export default function ManagerPage() {
     setTables(data.tables ?? []);
   }
 
+  async function updateTableStatus({
+    tableId,
+    action,
+    loadingSetter,
+    successMessage,
+  }: {
+    tableId: string;
+    action: "APPROVE_SESSION" | "REQUEST_BILL" | "CLOSE_SESSION";
+    loadingSetter: (tableId: string | null) => void;
+    successMessage: string;
+  }) {
+    try {
+      loadingSetter(tableId);
+      setTableMessage(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/tables", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          tableId,
+          action,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao atualizar mesa.");
+      }
+
+      setTables((currentTables) =>
+        currentTables.map((table) =>
+          table.id === tableId
+            ? {
+                ...table,
+                operational_status: data.table?.operational_status ?? table.operational_status,
+                active_session_id:
+                  data.table?.active_session_id ?? table.active_session_id,
+              }
+            : table,
+        ),
+      );
+
+      setTableMessage(successMessage);
+    } catch (error) {
+      setTableMessage(
+        error instanceof Error
+          ? error.message
+          : "Erro ao atualizar mesa.",
+      );
+    } finally {
+      loadingSetter(null);
+    }
+  }
+
   function handleCategoryCreated(category: Category) {
     setCategories((currentCategories) => [...currentCategories, category]);
 
@@ -182,52 +245,31 @@ export default function ManagerPage() {
     setProducts((currentProducts) => [...currentProducts, product]);
   }
 
-  async function handleApproveTableSession(tableId: string) {
-    try {
-      setApprovingTableId(tableId);
-      setTableMessage(null);
+  function handleApproveTableSession(tableId: string) {
+    updateTableStatus({
+      tableId,
+      action: "APPROVE_SESSION",
+      loadingSetter: setApprovingTableId,
+      successMessage: "Mesa aprovada com sucesso.",
+    });
+  }
 
-      const accessToken = await getAccessToken();
+  function handleRequestBill(tableId: string) {
+    updateTableStatus({
+      tableId,
+      action: "REQUEST_BILL",
+      loadingSetter: setRequestingBillTableId,
+      successMessage: "Solicitação de conta registrada.",
+    });
+  }
 
-      const response = await fetch("/api/tables", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          tableId,
-          action: "APPROVE_SESSION",
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message ?? "Erro ao aprovar mesa.");
-      }
-
-      setTables((currentTables) =>
-        currentTables.map((table) =>
-          table.id === tableId
-            ? {
-                ...table,
-                operational_status: "OPEN",
-                active_session_id:
-                  data.table?.active_session_id ?? table.active_session_id,
-              }
-            : table,
-        ),
-      );
-
-      setTableMessage("Mesa aprovada com sucesso.");
-    } catch (error) {
-      setTableMessage(
-        error instanceof Error ? error.message : "Erro ao aprovar mesa.",
-      );
-    } finally {
-      setApprovingTableId(null);
-    }
+  function handleCloseSession(tableId: string) {
+    updateTableStatus({
+      tableId,
+      action: "CLOSE_SESSION",
+      loadingSetter: setClosingTableId,
+      successMessage: "Mesa fechada com sucesso.",
+    });
   }
 
   async function handleLogout() {
@@ -260,7 +302,9 @@ export default function ManagerPage() {
               Quitéria
             </h1>
 
-            <p className="mt-3 text-zinc-400">Bem-vindo, {userName}.</p>
+            <p className="mt-3 text-zinc-400">
+              Bem-vindo, {userName}.
+            </p>
           </div>
 
           <Button
@@ -307,7 +351,9 @@ export default function ManagerPage() {
 
               <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5">
                 <p className="text-sm text-zinc-400">Produtos cadastrados</p>
-                <p className="mt-2 text-3xl font-bold">{products.length}</p>
+                <p className="mt-2 text-3xl font-bold">
+                  {products.length}
+                </p>
               </div>
             </div>
           </Card>
@@ -317,18 +363,24 @@ export default function ManagerPage() {
           <div className="mb-6">
             <h2 className="text-xl font-semibold">Mesas</h2>
             <p className="mt-1 text-sm text-zinc-400">
-              Mesas cadastradas e tokens de QR Code do restaurante.
+              Mesas cadastradas, QR Codes e status operacional do restaurante.
             </p>
 
             {tableMessage && (
-              <p className="mt-3 text-sm text-zinc-300">{tableMessage}</p>
+              <p className="mt-3 text-sm text-zinc-300">
+                {tableMessage}
+              </p>
             )}
           </div>
 
           <TableGrid
             tables={tables}
             approvingTableId={approvingTableId}
+            requestingBillTableId={requestingBillTableId}
+            closingTableId={closingTableId}
             onApproveSession={handleApproveTableSession}
+            onRequestBill={handleRequestBill}
+            onCloseSession={handleCloseSession}
           />
         </Card>
 

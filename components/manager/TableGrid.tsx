@@ -5,7 +5,11 @@ import { TableWithStatus } from "@/types/table";
 type TableGridProps = {
   tables: TableWithStatus[];
   approvingTableId: string | null;
+  requestingBillTableId: string | null;
+  closingTableId: string | null;
   onApproveSession: (tableId: string) => void;
+  onRequestBill: (tableId: string) => void;
+  onCloseSession: (tableId: string) => void;
 };
 
 function getTableStatusInfo(status: TableWithStatus["operational_status"]) {
@@ -47,14 +51,26 @@ function getTableStatusInfo(status: TableWithStatus["operational_status"]) {
 export function TableGrid({
   tables,
   approvingTableId,
+  requestingBillTableId,
+  closingTableId,
   onApproveSession,
+  onRequestBill,
+  onCloseSession,
 }: TableGridProps) {
   return (
     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
       {tables.map((table) => {
         const statusInfo = getTableStatusInfo(table.operational_status);
-        const isPendingApproval = table.operational_status === "PENDING_APPROVAL";
+
+        const isPendingApproval =
+          table.operational_status === "PENDING_APPROVAL";
+        const isOpen = table.operational_status === "OPEN";
+        const isBillRequested =
+          table.operational_status === "BILL_REQUESTED";
+
         const isApproving = approvingTableId === table.id;
+        const isRequestingBill = requestingBillTableId === table.id;
+        const isClosing = closingTableId === table.id;
 
         return (
           <div
@@ -89,6 +105,28 @@ export function TableGrid({
                 className="mt-4 w-full rounded-xl bg-yellow-300 px-3 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isApproving ? "Aprovando..." : "Aprovar mesa"}
+              </button>
+            )}
+
+            {isOpen && (
+              <button
+                type="button"
+                disabled={isRequestingBill}
+                onClick={() => onRequestBill(table.id)}
+                className="mt-4 w-full rounded-xl bg-red-400 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-300 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isRequestingBill ? "Solicitando..." : "Solicitar conta"}
+              </button>
+            )}
+
+            {isBillRequested && (
+              <button
+                type="button"
+                disabled={isClosing}
+                onClick={() => onCloseSession(table.id)}
+                className="mt-4 w-full rounded-xl bg-emerald-400 px-3 py-2 text-xs font-semibold text-zinc-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isClosing ? "Fechando..." : "Fechar mesa"}
               </button>
             )}
           </div>
