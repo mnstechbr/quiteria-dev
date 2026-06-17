@@ -38,7 +38,7 @@ async function requireWaiter(request: Request) {
   };
 }
 
-function normalizePendingOrders(orders: any[]) {
+function normalizeOrders(orders: any[]) {
   return orders.map((order) => ({
     id: order.id,
     restaurant_id: order.restaurant_id,
@@ -89,55 +89,113 @@ async function openTableSessionFromApprovedOrder(orderId: string) {
   }
 }
 
+async function listWaitingApprovalOrders(restaurantId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .select(
+      `
+        id,
+        restaurant_id,
+        table_session_id,
+        status,
+        notes,
+        total_amount,
+        created_at,
+        approved_at,
+        table_sessions (
+          id,
+          table_id,
+          tables (
+            id,
+            name
+          )
+        ),
+        order_items (
+          id,
+          order_id,
+          product_id,
+          product_name,
+          quantity,
+          unit_price,
+          total_price,
+          notes,
+          status,
+          preparation_area,
+          created_at
+        )
+      `,
+    )
+    .eq("restaurant_id", restaurantId)
+    .eq("status", "WAITING_APPROVAL")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return normalizeOrders(data ?? []);
+}
+
+async function listReadyForDeliveryOrders(restaurantId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("orders")
+    .select(
+      `
+        id,
+        restaurant_id,
+        table_session_id,
+        status,
+        notes,
+        total_amount,
+        created_at,
+        approved_at,
+        table_sessions (
+          id,
+          table_id,
+          tables (
+            id,
+            name
+          )
+        ),
+        order_items (
+          id,
+          order_id,
+          product_id,
+          product_name,
+          quantity,
+          unit_price,
+          total_price,
+          notes,
+          status,
+          preparation_area,
+          created_at
+        )
+      `,
+    )
+    .eq("restaurant_id", restaurantId)
+    .eq("status", "READY")
+    .order("approved_at", { ascending: true, nullsFirst: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return normalizeOrders(data ?? []);
+}
+
 export async function GET(request: Request) {
   try {
     const { restaurantId } = await requireWaiter(request);
+    const { searchParams } = new URL(request.url);
+    const view = searchParams.get("view");
 
-    const { data, error } = await supabaseAdmin
-      .from("orders")
-      .select(
-        `
-          id,
-          restaurant_id,
-          table_session_id,
-          status,
-          notes,
-          total_amount,
-          created_at,
-          approved_at,
-          table_sessions (
-            id,
-            table_id,
-            tables (
-              id,
-              name
-            )
-          ),
-          order_items (
-            id,
-            order_id,
-            product_id,
-            product_name,
-            quantity,
-            unit_price,
-            total_price,
-            notes,
-            status,
-            preparation_area,
-            created_at
-          )
-        `,
-      )
-      .eq("restaurant_id", restaurantId)
-      .eq("status", "WAITING_APPROVAL")
-      .order("created_at", { ascending: true });
-
-    if (error) {
-      throw new Error(error.message);
-    }
+    const orders =
+      view === "READY_FOR_DELIVERY"
+        ? await listReadyForDeliveryOrders(restaurantId)
+        : await listWaitingApprovalOrders(restaurantId);
 
     return NextResponse.json({
-      orders: normalizePendingOrders(data ?? []),
+      orders,
     });
   } catch (error) {
     return NextResponse.json(
@@ -164,64 +222,112 @@ export async function PATCH(request: Request) {
       throw new Error("Informe o pedido.");
     }
 
-    if (action !== "APPROVE_ORDER") {
-      throw new Error("Ação inválida.");
+    if (action === "APPROVE_ORDER") {
+      const { data: order, error: orderError } = await supabaseAdmin
+        .from("orders")
+        .select("id, restaurant_id, status")
+        .eq("id", orderId)
+        .eq("restaurant_id", restaurantId)
+        .eq("status", "WAITING_APPROVAL")
+        .maybeSingle();
+
+      if (orderError) {
+        throw new Error(orderError.message);
+      }
+
+      if (!order) {
+        throw new Error("Pedido aguardando aprovação não encontrado.");
+      }
+
+      const { data: updatedOrder, error: updateOrderError } = await supabaseAdmin
+        .from("orders")
+        .update({
+          status: "RECEIVED",
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", orderId)
+        .eq("restaurant_id", restaurantId)
+        .select("id, status, approved_at")
+        .single();
+
+      if (updateOrderError) {
+        throw new Error(updateOrderError.message);
+      }
+
+      const { error: updateItemsError } = await supabaseAdmin
+        .from("order_items")
+        .update({
+          status: "RECEIVED",
+        })
+        .eq("order_id", orderId);
+
+      if (updateItemsError) {
+        throw new Error(updateItemsError.message);
+      }
+
+      await openTableSessionFromApprovedOrder(orderId);
+
+      return NextResponse.json({
+        order: updatedOrder,
+      });
     }
 
-    const { data: order, error: orderError } = await supabaseAdmin
-      .from("orders")
-      .select("id, restaurant_id, status")
-      .eq("id", orderId)
-      .eq("restaurant_id", restaurantId)
-      .eq("status", "WAITING_APPROVAL")
-      .maybeSingle();
+    if (action === "MARK_DELIVERED") {
+      const { data: order, error: orderError } = await supabaseAdmin
+        .from("orders")
+        .select("id, restaurant_id, status")
+        .eq("id", orderId)
+        .eq("restaurant_id", restaurantId)
+        .eq("status", "READY")
+        .maybeSingle();
 
-    if (orderError) {
-      throw new Error(orderError.message);
+      if (orderError) {
+        throw new Error(orderError.message);
+      }
+
+      if (!order) {
+        throw new Error("Pedido pronto para entrega não encontrado.");
+      }
+
+      const { error: updateItemsError } = await supabaseAdmin
+        .from("order_items")
+        .update({
+          status: "DELIVERED",
+        })
+        .eq("order_id", orderId)
+        .eq("status", "READY");
+
+      if (updateItemsError) {
+        throw new Error(updateItemsError.message);
+      }
+
+      const { data: updatedOrder, error: updateOrderError } = await supabaseAdmin
+        .from("orders")
+        .update({
+          status: "DELIVERED",
+        })
+        .eq("id", orderId)
+        .eq("restaurant_id", restaurantId)
+        .select("id, status")
+        .single();
+
+      if (updateOrderError) {
+        throw new Error(updateOrderError.message);
+      }
+
+      return NextResponse.json({
+        order: updatedOrder,
+      });
     }
 
-    if (!order) {
-      throw new Error("Pedido aguardando aprovação não encontrado.");
-    }
-
-    const { data: updatedOrder, error: updateOrderError } = await supabaseAdmin
-      .from("orders")
-      .update({
-        status: "RECEIVED",
-        approved_at: new Date().toISOString(),
-      })
-      .eq("id", orderId)
-      .eq("restaurant_id", restaurantId)
-      .select("id, status, approved_at")
-      .single();
-
-    if (updateOrderError) {
-      throw new Error(updateOrderError.message);
-    }
-
-    const { error: updateItemsError } = await supabaseAdmin
-      .from("order_items")
-      .update({
-        status: "RECEIVED",
-      })
-      .eq("order_id", orderId);
-
-    if (updateItemsError) {
-      throw new Error(updateItemsError.message);
-    }
-
-    await openTableSessionFromApprovedOrder(orderId);
-
-    return NextResponse.json({
-      order: updatedOrder,
-    });
+    throw new Error("Ação inválida.");
   } catch (error) {
     return NextResponse.json(
       {
         message:
           error instanceof Error
             ? error.message
-            : "Erro ao aprovar pedido.",
+            : "Erro ao atualizar pedido.",
       },
       { status: 400 },
     );

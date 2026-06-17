@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { PendingOrdersList } from "@/components/manager/PendingOrdersList";
+import { ReadyOrdersList } from "@/components/waiter/ReadyOrdersList";
 import { WaiterTableGrid } from "@/components/waiter/WaiterTableGrid";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -19,12 +20,15 @@ export default function WaiterPage() {
   const [userName, setUserName] = useState("");
   const [tables, setTables] = useState<TableWithStatus[]>([]);
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
+  const [readyOrders, setReadyOrders] = useState<PendingOrder[]>([]);
 
   const [approvingTableId, setApprovingTableId] = useState<string | null>(null);
   const [requestingBillTableId, setRequestingBillTableId] = useState<string | null>(null);
   const [approvingOrderId, setApprovingOrderId] = useState<string | null>(null);
+  const [deliveringOrderId, setDeliveringOrderId] = useState<string | null>(null);
   const [tableMessage, setTableMessage] = useState<string | null>(null);
   const [orderMessage, setOrderMessage] = useState<string | null>(null);
+  const [deliveryMessage, setDeliveryMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function initializePage() {
@@ -54,6 +58,7 @@ export default function WaiterPage() {
         await Promise.all([
           loadTables(),
           loadPendingOrders(),
+          loadReadyOrders(),
         ]);
       } catch {
         window.location.replace("/login");
@@ -109,6 +114,23 @@ export default function WaiterPage() {
 
     const data = await response.json();
     setPendingOrders(data.orders ?? []);
+  }
+
+  async function loadReadyOrders() {
+    const accessToken = await getAccessToken();
+
+    const response = await fetch("/api/waiter/orders?view=READY_FOR_DELIVERY", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar pedidos prontos para entrega.");
+    }
+
+    const data = await response.json();
+    setReadyOrders(data.orders ?? []);
   }
 
   async function updateTableStatus({
@@ -201,6 +223,11 @@ export default function WaiterPage() {
         currentOrders.filter((order) => order.id !== orderId),
       );
 
+      await Promise.all([
+        loadTables(),
+        loadReadyOrders(),
+      ]);
+
       setOrderMessage("Pedido aprovado e enviado para produção.");
     } catch (error) {
       setOrderMessage(
@@ -210,6 +237,47 @@ export default function WaiterPage() {
       );
     } finally {
       setApprovingOrderId(null);
+    }
+  }
+
+  async function handleMarkDelivered(orderId: string) {
+    try {
+      setDeliveringOrderId(orderId);
+      setDeliveryMessage(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/waiter/orders", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          orderId,
+          action: "MARK_DELIVERED",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao marcar entrega.");
+      }
+
+      setReadyOrders((currentOrders) =>
+        currentOrders.filter((order) => order.id !== orderId),
+      );
+
+      setDeliveryMessage("Pedido marcado como entregue.");
+    } catch (error) {
+      setDeliveryMessage(
+        error instanceof Error
+          ? error.message
+          : "Erro ao marcar entrega.",
+      );
+    } finally {
+      setDeliveringOrderId(null);
     }
   }
 
@@ -293,6 +361,27 @@ export default function WaiterPage() {
             orders={pendingOrders}
             approvingOrderId={approvingOrderId}
             onApproveOrder={handleApproveOrder}
+          />
+        </Card>
+
+        <Card>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Pedidos prontos para entrega</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              Marque como entregue quando levar o pedido para a mesa.
+            </p>
+
+            {deliveryMessage && (
+              <p className="mt-3 text-sm text-zinc-300">
+                {deliveryMessage}
+              </p>
+            )}
+          </div>
+
+          <ReadyOrdersList
+            orders={readyOrders}
+            deliveringOrderId={deliveringOrderId}
+            onMarkDelivered={handleMarkDelivered}
           />
         </Card>
 
