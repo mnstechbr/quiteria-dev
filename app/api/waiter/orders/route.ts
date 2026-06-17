@@ -3,7 +3,7 @@ import { getBearerToken } from "@/lib/auth/request-auth";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-async function requireManager(request: Request) {
+async function requireWaiter(request: Request) {
   const token = getBearerToken(request);
 
   if (!token) {
@@ -25,7 +25,7 @@ async function requireManager(request: Request) {
     .from("restaurant_users")
     .select("restaurant_id, role, is_active")
     .eq("user_id", user.id)
-    .eq("role", "MANAGER")
+    .in("role", ["MANAGER", "WAITER"])
     .eq("is_active", true)
     .maybeSingle();
 
@@ -91,7 +91,7 @@ async function openTableSessionFromApprovedOrder(orderId: string) {
 
 export async function GET(request: Request) {
   try {
-    const { restaurantId } = await requireManager(request);
+    const { restaurantId } = await requireWaiter(request);
 
     const { data, error } = await supabaseAdmin
       .from("orders")
@@ -154,7 +154,7 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const { restaurantId } = await requireManager(request);
+    const { restaurantId } = await requireWaiter(request);
     const body = await request.json();
 
     const orderId = String(body.orderId ?? "").trim();

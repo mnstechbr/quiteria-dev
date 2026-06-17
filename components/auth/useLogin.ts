@@ -21,8 +21,30 @@ export function useLogin() {
         return;
       }
 
-      if (session?.restaurantMembership?.role === "MANAGER") {
+      const role = session?.restaurantMembership?.role;
+
+      if (role === "MANAGER") {
         window.location.href = "/manager";
+        return;
+      }
+
+      if (role === "WAITER") {
+        window.location.href = "/waiter";
+        return;
+      }
+
+      if (role === "KITCHEN") {
+        window.location.href = "/kitchen";
+        return;
+      }
+
+      if (role === "BAR") {
+        window.location.href = "/bar";
+        return;
+      }
+
+      if (role === "CASHIER") {
+        window.location.href = "/cashier";
         return;
       }
 
