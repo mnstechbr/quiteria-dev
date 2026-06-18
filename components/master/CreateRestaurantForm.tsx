@@ -67,48 +67,46 @@ export function CreateRestaurantForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-3xl border border-white/10 bg-zinc-900/70 p-5"
+      className="rounded-3xl border border-white/10 bg-zinc-900/80 p-5 shadow-xl shadow-black/10"
     >
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold">Novo Restaurante</h3>
-        <p className="mt-1 text-sm text-zinc-400">
+      <div>
+        <h3 className="text-lg font-bold text-white">Novo restaurante</h3>
+        <p className="mt-1 text-sm leading-6 text-zinc-400">
           Crie um novo cliente na plataforma Quitéria.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className="mb-2 block text-sm text-zinc-300">
+      <div className="mt-5 space-y-4">
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-zinc-300">
             Nome do restaurante
-          </label>
-
+          </span>
           <input
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Ex: Hamburgueria do João"
             required
-            className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
+            className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-4 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
           />
-        </div>
+        </label>
 
-        <div>
-          <label className="mb-2 block text-sm text-zinc-300">
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-zinc-300">
             Slug
-          </label>
-
+          </span>
           <input
             type="text"
             value={slug}
             onChange={(event) => setSlug(event.target.value)}
             placeholder="Ex: hamburgueria-do-joao"
-            className="w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
+            className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-4 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
           />
-        </div>
+        </label>
       </div>
 
       {message && (
-        <p className="mt-4 text-sm text-zinc-300">
+        <p className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-6 text-zinc-300">
           {message}
         </p>
       )}
@@ -116,9 +114,9 @@ export function CreateRestaurantForm({
       <button
         type="submit"
         disabled={loading}
-        className="mt-5 rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-5 w-full rounded-2xl bg-orange-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Criando..." : "Criar Restaurante"}
+        {loading ? "Criando..." : "Criar restaurante"}
       </button>
     </form>
   );

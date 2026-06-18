@@ -70,47 +70,74 @@ export function CreateManagerForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 rounded-2xl border border-white/10 bg-zinc-950/70 p-4"
+      className="mt-4 rounded-3xl border border-white/10 bg-zinc-950/80 p-4"
     >
-      <p className="mb-3 text-sm font-medium text-orange-400">
-        Criar gerente para {restaurant.name}
-      </p>
-
-      <div className="grid gap-3 md:grid-cols-3">
-        <input
-          type="text"
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          placeholder="Nome do gerente"
-          required
-          className="rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
-        />
-
-        <input
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="E-mail do gerente"
-          required
-          className="rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
-        />
-
-        <input
-          type="text"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="Senha temporária"
-          required
-          className="rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
-        />
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-400">
+          Acesso do gerente
+        </p>
+        <h4 className="mt-2 text-base font-bold text-white">
+          Criar gerente
+        </h4>
+        <p className="mt-1 text-sm leading-6 text-zinc-400">
+          Preencha os dados para liberar o acesso administrativo deste restaurante.
+        </p>
       </div>
 
-      {message && <p className="mt-3 text-sm text-zinc-300">{message}</p>}
+      <div className="mt-4 space-y-3">
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-zinc-300">
+            Nome do gerente
+          </span>
+          <input
+            type="text"
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            placeholder="Ex: João Silva"
+            required
+            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-zinc-300">
+            E-mail do gerente
+          </span>
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="gerente@email.com"
+            required
+            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-2 block text-sm font-medium text-zinc-300">
+            Senha temporária
+          </span>
+          <input
+            type="text"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Senha temporária"
+            required
+            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+          />
+        </label>
+      </div>
+
+      {message && (
+        <p className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-6 text-zinc-300">
+          {message}
+        </p>
+      )}
 
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 w-full rounded-2xl bg-orange-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Criando gerente..." : "Criar gerente"}
       </button>
