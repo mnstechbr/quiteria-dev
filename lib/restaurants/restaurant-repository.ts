@@ -7,7 +7,9 @@ import {
 export async function listRestaurants(): Promise<Restaurant[]> {
   const { data, error } = await supabase
     .from("restaurants")
-    .select("id, name, slug, is_active, setup_status, created_at, updated_at")
+    .select(
+      "id, name, slug, is_active, setup_status, manager_email, created_at, updated_at",
+    )
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -27,7 +29,9 @@ export async function createRestaurant(
       slug: input.slug,
       setup_status: "PENDING",
     })
-    .select("id, name, slug, is_active, setup_status, created_at, updated_at")
+    .select(
+      "id, name, slug, is_active, setup_status, manager_email, created_at, updated_at",
+    )
     .single();
 
   if (error) {
