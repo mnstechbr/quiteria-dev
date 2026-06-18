@@ -148,7 +148,7 @@ export default function CashierPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <main className="flex min-h-dvh items-center justify-center overflow-x-hidden bg-zinc-950 px-4 text-center text-sm text-zinc-300">
         Carregando caixa...
       </main>
     );
@@ -159,30 +159,41 @@ export default function CashierPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8 text-white">
-      <section className="mx-auto max-w-6xl space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-orange-400">Caixa</p>
-
-            <h1 className="mt-2 text-4xl font-bold tracking-tight">
+    <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-white">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-zinc-950/95 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-md items-center justify-between gap-3 px-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-400">
+              Caixa
+            </p>
+            <h1 className="truncate text-lg font-bold leading-tight text-white">
               Quitéria
             </h1>
-
-            <p className="mt-3 text-zinc-400">Bem-vindo, {userName}.</p>
           </div>
 
           <Button
             type="button"
             onClick={handleLogout}
-            className="border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
+            className="shrink-0 border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-zinc-300 hover:border-orange-500 hover:bg-white/[0.06] hover:text-white"
           >
             Sair
           </Button>
         </div>
+      </header>
+
+      <section className="mx-auto w-full max-w-md px-4 pb-28 pt-20">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20">
+          <p className="text-sm text-zinc-400">Bem-vindo, {userName}.</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-white">
+            Controle do caixa
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            Acompanhe mesas, contas solicitadas, taxa de serviço e fechamento de pagamentos.
+          </p>
+        </div>
 
         {message && (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-zinc-300">
+          <div className="mt-4 rounded-2xl border border-orange-400/30 bg-orange-400/10 p-4 text-sm leading-6 text-orange-100">
             {message}
           </div>
         )}
@@ -195,6 +206,29 @@ export default function CashierPage() {
           onCloseBill={handleCloseBill}
         />
       </section>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-zinc-950/95 px-4 py-3 backdrop-blur">
+        <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 text-center text-[11px] font-semibold text-zinc-300">
+          <a
+            href="#cashier-overview"
+            className="rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-3 hover:border-orange-500 hover:text-white"
+          >
+            Início
+          </a>
+          <a
+            href="#cashier-bills"
+            className="rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-3 hover:border-orange-500 hover:text-white"
+          >
+            Contas
+          </a>
+          <a
+            href="#cashier-tables"
+            className="rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-3 hover:border-orange-500 hover:text-white"
+          >
+            Mesas
+          </a>
+        </div>
+      </nav>
     </main>
   );
 }

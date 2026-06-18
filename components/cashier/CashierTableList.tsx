@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { TableWithStatus } from "@/types/table";
 
 type CashierTable = TableWithStatus & {
@@ -56,6 +55,21 @@ type CashierTableListProps = {
   ) => void;
 };
 
+type TableFilter =
+  | "ALL"
+  | "BILL_REQUESTED"
+  | "OPEN"
+  | "PENDING_APPROVAL"
+  | "AVAILABLE";
+
+const tableFilters: Array<{ value: TableFilter; label: string }> = [
+  { value: "ALL", label: "Todas" },
+  { value: "BILL_REQUESTED", label: "Contas" },
+  { value: "OPEN", label: "Atendimento" },
+  { value: "PENDING_APPROVAL", label: "Aprovar" },
+  { value: "AVAILABLE", label: "Livres" },
+];
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -67,27 +81,31 @@ function getStatusInfo(status: TableWithStatus["operational_status"]) {
   if (status === "PENDING_APPROVAL") {
     return {
       label: "Aguardando aprovação",
-      className: "border-yellow-300/60 bg-yellow-300/10 text-yellow-200",
+      shortLabel: "Aprovar",
+      className: "border-yellow-300/50 bg-yellow-300/10 text-yellow-100",
     };
   }
 
   if (status === "OPEN") {
     return {
       label: "Em atendimento",
-      className: "border-sky-300/60 bg-sky-300/10 text-sky-200",
+      shortLabel: "Atendimento",
+      className: "border-sky-300/50 bg-sky-300/10 text-sky-100",
     };
   }
 
   if (status === "BILL_REQUESTED") {
     return {
       label: "Conta solicitada",
-      className: "border-red-400/60 bg-red-400/10 text-red-200",
+      shortLabel: "Conta",
+      className: "border-red-400/50 bg-red-400/10 text-red-100",
     };
   }
 
   return {
     label: "Disponível",
-    className: "border-emerald-300/50 bg-emerald-300/10 text-emerald-200",
+    shortLabel: "Livre",
+    className: "border-emerald-300/50 bg-emerald-300/10 text-emerald-100",
   };
 }
 
@@ -112,6 +130,7 @@ export function CashierTableList({
   const [servicePercents, setServicePercents] = useState<Record<string, string>>(
     {},
   );
+  const [tableFilter, setTableFilter] = useState<TableFilter>("ALL");
 
   const tableSummary = useMemo(() => {
     return tables.reduce(
@@ -137,6 +156,14 @@ export function CashierTableList({
     );
   }, [tables]);
 
+  const filteredTables = useMemo(() => {
+    if (tableFilter === "ALL") {
+      return tables;
+    }
+
+    return tables.filter((table) => table.operational_status === tableFilter);
+  }, [tableFilter, tables]);
+
   function handlePaymentMethodChange(sessionId: string, paymentMethod: string) {
     setPaymentMethods((current) => ({
       ...current,
@@ -152,74 +179,84 @@ export function CashierTableList({
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">Mapa das mesas</h2>
-          <p className="mt-1 text-sm text-zinc-400">
-            Visualização somente leitura para o caixa acompanhar a operação e o consumo em tempo real.
+    <div className="mt-5 space-y-5" id="cashier-overview">
+      <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
+              Resumo
+            </p>
+            <h2 className="mt-1 text-xl font-bold text-white">Operação atual</h2>
+          </div>
+
+          <Badge>{tableSummary.total} mesas</Badge>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-red-400/30 bg-red-400/10 p-4">
+            <p className="text-xs text-red-100/80">Contas</p>
+            <p className="mt-1 text-2xl font-bold text-white">
+              {tableSummary.bill}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-sky-300/30 bg-sky-300/10 p-4">
+            <p className="text-xs text-sky-100/80">Atendimento</p>
+            <p className="mt-1 text-2xl font-bold text-white">
+              {tableSummary.open}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-yellow-300/30 bg-yellow-300/10 p-4">
+            <p className="text-xs text-yellow-100/80">Aprovação</p>
+            <p className="mt-1 text-2xl font-bold text-white">
+              {tableSummary.pending}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-300/30 bg-emerald-300/10 p-4">
+            <p className="text-xs text-emerald-100/80">Livres</p>
+            <p className="mt-1 text-2xl font-bold text-white">
+              {tableSummary.available}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-orange-400/30 bg-orange-400/10 p-4">
+          <p className="text-xs text-orange-100/80">Consumo ativo</p>
+          <p className="mt-1 text-2xl font-bold text-white">
+            {formatCurrency(tableSummary.totalConsumption)}
           </p>
         </div>
+      </section>
 
-        <div className="mb-6 grid gap-3 md:grid-cols-5">
-          <div className="rounded-2xl border border-emerald-300/40 bg-emerald-300/10 p-4 text-sm text-emerald-200">
-            Disponíveis: {tableSummary.available}
-          </div>
-          <div className="rounded-2xl border border-yellow-300/40 bg-yellow-300/10 p-4 text-sm text-yellow-200">
-            Aguardando: {tableSummary.pending}
-          </div>
-          <div className="rounded-2xl border border-sky-300/40 bg-sky-300/10 p-4 text-sm text-sky-200">
-            Em atendimento: {tableSummary.open}
-          </div>
-          <div className="rounded-2xl border border-red-400/40 bg-red-400/10 p-4 text-sm text-red-200">
-            Contas: {tableSummary.bill}
-          </div>
-          <div className="rounded-2xl border border-orange-400/40 bg-orange-400/10 p-4 text-sm text-orange-200">
-            Consumo ativo: {formatCurrency(tableSummary.totalConsumption)}
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-          {tables.map((table) => {
-            const statusInfo = getStatusInfo(table.operational_status);
-            const consumption = Number(table.active_session_total_amount ?? 0);
-
-            return (
-              <div
-                key={table.id}
-                className={`rounded-2xl border p-4 ${statusInfo.className}`}
-              >
-                <p className="font-semibold text-white">{table.name}</p>
-                <p className="mt-2 text-xs font-medium">{statusInfo.label}</p>
-                <p className="mt-4 text-xs text-zinc-300">Consumo</p>
-                <p className="mt-1 text-lg font-bold text-white">
-                  {formatCurrency(consumption)}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      <Card>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">Contas solicitadas</h2>
-          <p className="mt-1 text-sm text-zinc-400">
-            Mesas aguardando pagamento e fechamento pelo caixa.
+      <section
+        id="cashier-bills"
+        className="scroll-mt-20 rounded-3xl border border-white/10 bg-white/[0.04] p-4"
+      >
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
+            Pagamentos
+          </p>
+          <h2 className="mt-1 text-xl font-bold text-white">Contas solicitadas</h2>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            Feche as mesas que já pediram a conta.
           </p>
         </div>
 
         {bills.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center">
+          <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-6 text-center">
             <p className="text-sm text-zinc-400">
               Nenhuma conta solicitada no momento.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="mt-4 space-y-4">
             {bills.map((bill) => {
               const selectedPaymentMethod = paymentMethods[bill.session_id] ?? "";
-              const defaultServicePercent = Number(settings.defaultServicePercent ?? 0);
+              const defaultServicePercent = Number(
+                settings.defaultServicePercent ?? 0,
+              );
               const servicePercentValue =
                 servicePercents[bill.session_id] ?? String(defaultServicePercent);
               const servicePercent = Number(servicePercentValue || 0);
@@ -231,54 +268,56 @@ export function CashierTableList({
               const isClosing = closingSessionId === bill.session_id;
 
               return (
-                <div
+                <article
                   key={bill.session_id}
-                  className="rounded-2xl border border-white/10 bg-zinc-900/70 p-5"
+                  className="rounded-3xl border border-white/10 bg-zinc-950/70 p-4"
                 >
-                  <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold">{bill.table_name}</h3>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="break-words text-lg font-bold text-white">
+                        {bill.table_name}
+                      </h3>
                       <p className="mt-1 text-sm text-zinc-400">
-                        {bill.orders.length} pedido(s) vinculados à mesa.
+                        {bill.orders.length} pedido(s) vinculados.
                       </p>
                     </div>
 
                     <Badge>{formatCurrency(finalAmount)}</Badge>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="mt-4 space-y-3">
                     {bill.orders.map((order) => (
                       <div
                         key={order.id}
-                        className="rounded-xl border border-white/10 bg-zinc-950/60 p-4"
+                        className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
                       >
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium text-zinc-300">
+                        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+                          <p className="text-sm font-semibold text-zinc-200">
                             Pedido
                           </p>
-                          <p className="text-sm text-zinc-400">
+                          <p className="shrink-0 text-sm font-semibold text-zinc-300">
                             {formatCurrency(order.total_amount)}
                           </p>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="mt-3 space-y-3">
                           {order.items.map((item) => (
                             <div
                               key={item.id}
                               className="flex items-start justify-between gap-3 text-sm"
                             >
-                              <div>
-                                <p className="text-zinc-200">
+                              <div className="min-w-0">
+                                <p className="break-words text-zinc-200">
                                   {item.quantity}x {item.product_name}
                                 </p>
                                 {item.notes && (
-                                  <p className="text-xs text-zinc-500">
+                                  <p className="mt-1 break-words text-xs text-zinc-500">
                                     Obs: {item.notes}
                                   </p>
                                 )}
                               </div>
 
-                              <p className="text-zinc-300">
+                              <p className="shrink-0 text-zinc-300">
                                 {formatCurrency(item.total_price)}
                               </p>
                             </div>
@@ -288,17 +327,17 @@ export function CashierTableList({
                     ))}
                   </div>
 
-                  <div className="mt-5 rounded-2xl border border-white/10 bg-zinc-950/60 p-4">
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div>
-                        <p className="text-xs text-zinc-500">Subtotal</p>
-                        <p className="mt-1 text-lg font-semibold text-white">
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-zinc-400">Subtotal</p>
+                        <p className="text-lg font-semibold text-white">
                           {formatCurrency(bill.total_amount)}
                         </p>
                       </div>
 
                       <div>
-                        <label className="text-xs text-zinc-500">
+                        <label className="text-sm text-zinc-400">
                           Taxa de serviço (%)
                         </label>
                         <input
@@ -314,25 +353,25 @@ export function CashierTableList({
                               event.target.value,
                             )
                           }
-                          className="mt-1 w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="mt-2 w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-base text-white outline-none focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
                         />
 
                         {!settings.allowCashierServicePercentEdit && (
-                          <p className="mt-1 text-xs text-zinc-500">
+                          <p className="mt-2 text-xs leading-5 text-zinc-500">
                             Taxa fixa definida nas configurações do restaurante.
                           </p>
                         )}
                       </div>
 
-                      <div>
-                        <p className="text-xs text-zinc-500">Taxa calculada</p>
-                        <p className="mt-1 text-lg font-semibold text-white">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm text-zinc-400">Taxa calculada</p>
+                        <p className="text-lg font-semibold text-white">
                           {formatCurrency(serviceAmount)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
                       <p className="text-sm text-zinc-400">Total final</p>
                       <p className="text-2xl font-bold text-orange-400">
                         {formatCurrency(finalAmount)}
@@ -340,7 +379,7 @@ export function CashierTableList({
                     </div>
                   </div>
 
-                  <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+                  <div className="mt-4 space-y-3">
                     <select
                       value={selectedPaymentMethod}
                       onChange={(event) =>
@@ -349,9 +388,9 @@ export function CashierTableList({
                           event.target.value,
                         )
                       }
-                      className="rounded-xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                      className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-base text-white outline-none focus:border-orange-500"
                     >
-                      <option value="">Selecione a forma de pagamento</option>
+                      <option value="">Forma de pagamento</option>
                       <option value="PIX">PIX</option>
                       <option value="CARD">Cartão</option>
                       <option value="CASH">Dinheiro</option>
@@ -367,16 +406,93 @@ export function CashierTableList({
                           servicePercent,
                         )
                       }
+                      className="w-full rounded-2xl py-3 text-base"
                     >
                       {isClosing ? "Finalizando..." : "Finalizar pagamento"}
                     </Button>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
         )}
-      </Card>
+      </section>
+
+      <section
+        id="cashier-tables"
+        className="scroll-mt-20 rounded-3xl border border-white/10 bg-white/[0.04] p-4"
+      >
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
+            Mesas
+          </p>
+          <h2 className="mt-1 text-xl font-bold text-white">Mapa do caixa</h2>
+          <p className="mt-2 text-sm leading-6 text-zinc-400">
+            Visualização de consumo e status em tempo real.
+          </p>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {tableFilters.map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => setTableFilter(filter.value)}
+              className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
+                tableFilter === filter.value
+                  ? "border-orange-500 bg-orange-500 text-white"
+                  : "border-white/10 bg-zinc-950/80 text-zinc-300 hover:border-orange-500 hover:text-white"
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
+        {filteredTables.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-6 text-center">
+            <p className="text-sm text-zinc-400">
+              Nenhuma mesa encontrada nesse filtro.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {filteredTables.map((table) => {
+              const statusInfo = getStatusInfo(table.operational_status);
+              const consumption = Number(table.active_session_total_amount ?? 0);
+
+              return (
+                <article
+                  key={table.id}
+                  className={`rounded-3xl border p-4 ${statusInfo.className}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="break-words text-lg font-bold text-white">
+                        {table.name}
+                      </h3>
+                      <p className="mt-1 text-sm font-medium">
+                        {statusInfo.label}
+                      </p>
+                    </div>
+
+                    <span className="shrink-0 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white">
+                      {statusInfo.shortLabel}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <p className="text-xs opacity-80">Consumo atual</p>
+                    <p className="mt-1 text-2xl font-bold text-white">
+                      {formatCurrency(consumption)}
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
