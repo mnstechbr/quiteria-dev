@@ -1,20 +1,107 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { KitchenOrdersList } from "@/components/kitchen/KitchenOrdersList";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
-import { ProductionOrder } from "@/types/order";
+import type { OrderItemStatus, ProductionOrder } from "@/types/order";
+
+type KitchenTab = "summary" | "received" | "progress" | "ready";
+type KitchenItemFilter = "ALL" | OrderItemStatus;
+
+const KITCHEN_TABS: Array<{
+  id: KitchenTab;
+  label: string;
+  shortLabel: string;
+  filter: KitchenItemFilter;
+}> = [
+  { id: "summary", label: "Resumo", shortLabel: "Início", filter: "ALL" },
+  { id: "received", label: "Recebidos", shortLabel: "Recebidos", filter: "RECEIVED" },
+  { id: "progress", label: "Em preparo", shortLabel: "Preparo", filter: "IN_PROGRESS" },
+  { id: "ready", label: "Prontos", shortLabel: "Prontos", filter: "READY" },
+];
+
+const ITEM_STATUS_ORDER: Record<string, number> = {
+  RECEIVED: 0,
+  IN_PROGRESS: 1,
+  READY: 2,
+  WAITING_APPROVAL: 3,
+  DELIVERED: 4,
+  CANCELLED: 5,
+};
+
+function sortOrdersForMobile(orders: ProductionOrder[]) {
+  return [...orders].sort((a, b) => {
+    const aFirstItemStatus = a.items[0]?.status ?? a.status;
+    const bFirstItemStatus = b.items[0]?.status ?? b.status;
+
+    const statusDiff =
+      (ITEM_STATUS_ORDER[aFirstItemStatus] ?? 99) -
+      (ITEM_STATUS_ORDER[bFirstItemStatus] ?? 99);
+
+    if (statusDiff !== 0) return statusDiff;
+
+    return a.table_name.localeCompare(b.table_name, "pt-BR", { numeric: true });
+  });
+}
+
+function filterOrdersByItemStatus(
+  orders: ProductionOrder[],
+  filter: KitchenItemFilter,
+): ProductionOrder[] {
+  if (filter === "ALL") {
+    return sortOrdersForMobile(orders);
+  }
+
+  const filteredOrders = orders
+    .map((order) => ({
+      ...order,
+      items: order.items.filter((item) => item.status === filter),
+    }))
+    .filter((order) => order.items.length > 0);
+
+  return sortOrdersForMobile(filteredOrders);
+}
+
+function countItemsByStatus(orders: ProductionOrder[], status: OrderItemStatus) {
+  return orders.reduce(
+    (total, order) =>
+      total + order.items.filter((item) => item.status === status).length,
+    0,
+  );
+}
+
+function getTotalItems(orders: ProductionOrder[]) {
+  return orders.reduce((total, order) => total + order.items.length, 0);
+}
 
 export default function KitchenPage() {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [allowed, setAllowed] = useState(false);
+  const [activeTab, setActiveTab] = useState<KitchenTab>("summary");
   const [orders, setOrders] = useState<ProductionOrder[]>([]);
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  const activeTabConfig =
+    KITCHEN_TABS.find((tab) => tab.id === activeTab) ?? KITCHEN_TABS[0];
+
+  const counters = useMemo(
+    () => ({
+      total: getTotalItems(orders),
+      received: countItemsByStatus(orders, "RECEIVED"),
+      progress: countItemsByStatus(orders, "IN_PROGRESS"),
+      ready: countItemsByStatus(orders, "READY"),
+    }),
+    [orders],
+  );
+
+  const visibleOrders = useMemo(
+    () => filterOrdersByItemStatus(orders, activeTabConfig.filter),
+    [activeTabConfig.filter, orders],
+  );
 
   useEffect(() => {
     async function initializePage() {
@@ -45,6 +132,10 @@ export default function KitchenPage() {
     initializePage();
   }, []);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
+
   async function getAccessToken() {
     const {
       data: { session },
@@ -73,6 +164,23 @@ export default function KitchenPage() {
     }
 
     setOrders(data.orders ?? []);
+  }
+
+  async function refreshOrders() {
+    try {
+      setRefreshing(true);
+      setMessage(null);
+      await loadOrders();
+      setMessage("Pedidos atualizados.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Erro ao atualizar pedidos.",
+      );
+    } finally {
+      setRefreshing(false);
+    }
   }
 
   async function updateItem(itemId: string, action: "START_ITEM" | "MARK_READY") {
@@ -120,7 +228,7 @@ export default function KitchenPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <main className="flex min-h-dvh items-center justify-center bg-zinc-950 px-6 text-center text-sm font-semibold text-white">
         Carregando cozinha...
       </main>
     );
@@ -131,45 +239,135 @@ export default function KitchenPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8 text-white">
-      <section className="mx-auto max-w-6xl space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-orange-400">
-              Quitéria
-            </p>
+    <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-white">
+      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col pb-28">
+        <header className="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/95 px-4 pb-3 pt-4 backdrop-blur">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-300">
+                Quitéria
+              </p>
 
-            <h1 className="mt-2 text-4xl font-bold tracking-tight">
-              Cozinha
-            </h1>
+              <h1 className="mt-1 truncate text-2xl font-black tracking-tight">
+                Cozinha
+              </h1>
 
-            <p className="mt-3 text-zinc-400">
-              Itens aprovados e enviados para preparo.
-            </p>
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-400">
+                Pedidos aprovados e enviados para preparo.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="shrink-0 rounded-2xl border border-white/10 px-3 py-2 text-xs font-bold text-zinc-300 active:scale-[0.98]"
+            >
+              Sair
+            </button>
+          </div>
+        </header>
+
+        <section className="flex-1 space-y-4 px-4 py-4">
+          {message && (
+            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-relaxed text-zinc-300">
+              {message}
+            </div>
+          )}
+
+          <section className="grid grid-cols-2 gap-2">
+            <div className="rounded-3xl border border-orange-300/50 bg-orange-300/10 p-4 shadow-[0_0_18px_rgba(253,186,116,0.10)]">
+              <p className="text-xs font-semibold text-orange-100/80">
+                Total na cozinha
+              </p>
+              <p className="mt-2 text-3xl font-black text-orange-100">
+                {counters.total}
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-yellow-300/50 bg-yellow-300/10 p-4 shadow-[0_0_18px_rgba(253,224,71,0.10)]">
+              <p className="text-xs font-semibold text-yellow-100/80">
+                Recebidos
+              </p>
+              <p className="mt-2 text-3xl font-black text-yellow-100">
+                {counters.received}
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-sky-300/50 bg-sky-300/10 p-4 shadow-[0_0_18px_rgba(125,211,252,0.10)]">
+              <p className="text-xs font-semibold text-sky-100/80">
+                Em preparo
+              </p>
+              <p className="mt-2 text-3xl font-black text-sky-100">
+                {counters.progress}
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-emerald-300/50 bg-emerald-300/10 p-4 shadow-[0_0_18px_rgba(110,231,183,0.10)]">
+              <p className="text-xs font-semibold text-emerald-100/80">
+                Prontos
+              </p>
+              <p className="mt-2 text-3xl font-black text-emerald-100">
+                {counters.ready}
+              </p>
+            </div>
+          </section>
+
+          <div className="flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-3">
+            <div className="min-w-0">
+              <p className="text-sm font-black text-white">
+                {activeTabConfig.label}
+              </p>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                {visibleOrders.length} pedido(s) visível(is)
+              </p>
+            </div>
+
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={refreshOrders}
+              className="min-h-11 shrink-0 rounded-2xl border border-white/10 px-4 text-xs font-black text-zinc-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {refreshing ? "Atualizando..." : "Atualizar"}
+            </button>
           </div>
 
-          <Button
-            type="button"
-            onClick={handleLogout}
-            className="border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
-          >
-            Sair
-          </Button>
-        </div>
+          <KitchenOrdersList
+            orders={visibleOrders}
+            emptyMessage={
+              activeTab === "summary"
+                ? "Nenhum pedido em produção no momento."
+                : `Nenhum item em ${activeTabConfig.label.toLowerCase()} no momento.`
+            }
+            loadingItemId={loadingItemId}
+            onStartItem={(itemId) => updateItem(itemId, "START_ITEM")}
+            onMarkReady={(itemId) => updateItem(itemId, "MARK_READY")}
+          />
+        </section>
 
-        {message && (
-          <Card>
-            <p className="text-sm text-zinc-300">{message}</p>
-          </Card>
-        )}
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-zinc-950/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 backdrop-blur">
+          <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
+            {KITCHEN_TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
 
-        <KitchenOrdersList
-          orders={orders}
-          loadingItemId={loadingItemId}
-          onStartItem={(itemId) => updateItem(itemId, "START_ITEM")}
-          onMarkReady={(itemId) => updateItem(itemId, "MARK_READY")}
-        />
-      </section>
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`min-h-14 rounded-2xl px-2 text-xs font-black transition active:scale-[0.98] ${
+                    isActive
+                      ? "bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.25)]"
+                      : "border border-white/10 bg-white/[0.04] text-zinc-400"
+                  }`}
+                >
+                  {tab.shortLabel}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
     </main>
   );
 }
