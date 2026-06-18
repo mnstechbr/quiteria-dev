@@ -1,28 +1,40 @@
 import { NextResponse } from "next/server";
 import { getBearerToken } from "@/lib/auth/request-auth";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-const ALLOWED_PREPARATION_AREAS = ["KITCHEN", "BAR"];
+const ALLOWED_PREPARATION_AREAS = ["KITCHEN", "BAR"] as const;
 
-async function requireManager(request: Request) {
+type ManagerContext = {
+  restaurantId: string;
+};
+
+function errorStatus(error: unknown) {
+  if (!(error instanceof Error)) return 400;
+  if (error.message === "UNAUTHORIZED") return 401;
+  if (error.message === "FORBIDDEN") return 403;
+  return 400;
+}
+
+async function requireManager(request: Request): Promise<ManagerContext> {
   const token = getBearerToken(request);
 
   if (!token) {
     throw new Error("UNAUTHORIZED");
   }
 
-  const supabase = createSupabaseServerClient(token);
+  const authSupabase = createSupabaseServerClient(token);
 
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = await authSupabase.auth.getUser();
 
   if (userError || !user) {
     throw new Error("UNAUTHORIZED");
   }
 
-  const { data: membership, error: membershipError } = await supabase
+  const { data: membership, error: membershipError } = await supabaseAdmin
     .from("restaurant_users")
     .select("restaurant_id, role, is_active")
     .eq("user_id", user.id)
@@ -35,38 +47,53 @@ async function requireManager(request: Request) {
   }
 
   return {
-    supabase,
     restaurantId: membership.restaurant_id as string,
   };
 }
 
 async function validateCategory({
-  supabase,
   restaurantId,
   categoryId,
+  requireActive = false,
 }: {
-  supabase: Awaited<ReturnType<typeof requireManager>>["supabase"];
   restaurantId: string;
   categoryId: string;
+  requireActive?: boolean;
 }) {
-  const { data: category, error } = await supabase
+  let query = supabaseAdmin
     .from("categories")
     .select("id")
     .eq("id", categoryId)
-    .eq("restaurant_id", restaurantId)
-    .eq("is_active", true)
-    .maybeSingle();
+    .eq("restaurant_id", restaurantId);
+
+  if (requireActive) {
+    query = query.eq("is_active", true);
+  }
+
+  const { data: category, error } = await query.maybeSingle();
 
   if (error || !category) {
     throw new Error("Categoria inválida para este restaurante.");
   }
 }
 
+function normalizeText(value: unknown) {
+  return String(value ?? "").trim();
+}
+
+function normalizePrice(value: unknown) {
+  if (typeof value === "string") {
+    return Number(value.replace(",", "."));
+  }
+
+  return Number(value ?? 0);
+}
+
 export async function GET(request: Request) {
   try {
-    const { supabase, restaurantId } = await requireManager(request);
+    const { restaurantId } = await requireManager(request);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("products")
       .select(
         "id, restaurant_id, category_id, name, description, price, image_url, preparation_area, is_active, is_featured, sort_order, created_at",
@@ -89,22 +116,22 @@ export async function GET(request: Request) {
             ? error.message
             : "Erro ao carregar produtos.",
       },
-      { status: 401 },
+      { status: errorStatus(error) },
     );
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const { supabase, restaurantId } = await requireManager(request);
+    const { restaurantId } = await requireManager(request);
     const body = await request.json();
 
-    const name = String(body.name ?? "").trim();
-    const description = String(body.description ?? "").trim();
-    const categoryId = String(body.category_id ?? "").trim();
-    const imageUrl = String(body.image_url ?? "").trim();
-    const preparationArea = String(body.preparation_area ?? "").trim();
-    const price = Number(body.price ?? 0);
+    const name = normalizeText(body.name);
+    const description = normalizeText(body.description);
+    const categoryId = normalizeText(body.category_id);
+    const imageUrl = normalizeText(body.image_url);
+    const preparationArea = normalizeText(body.preparation_area);
+    const price = normalizePrice(body.price);
     const isFeatured = Boolean(body.is_featured ?? false);
 
     if (!name) {
@@ -119,13 +146,13 @@ export async function POST(request: Request) {
       throw new Error("Informe um preço válido.");
     }
 
-    if (!ALLOWED_PREPARATION_AREAS.includes(preparationArea)) {
+    if (!ALLOWED_PREPARATION_AREAS.includes(preparationArea as (typeof ALLOWED_PREPARATION_AREAS)[number])) {
       throw new Error("Selecione uma área de preparo válida.");
     }
 
-    await validateCategory({ supabase, restaurantId, categoryId });
+    await validateCategory({ restaurantId, categoryId, requireActive: true });
 
-    const { data: lastProduct, error: lastProductError } = await supabase
+    const { data: lastProduct, error: lastProductError } = await supabaseAdmin
       .from("products")
       .select("sort_order")
       .eq("restaurant_id", restaurantId)
@@ -139,7 +166,7 @@ export async function POST(request: Request) {
 
     const nextSortOrder = Number(lastProduct?.sort_order ?? 0) + 1;
 
-    const { data: product, error: createError } = await supabase
+    const { data: product, error: createError } = await supabaseAdmin
       .from("products")
       .insert({
         restaurant_id: restaurantId,
@@ -174,23 +201,23 @@ export async function POST(request: Request) {
         message:
           error instanceof Error ? error.message : "Erro ao criar produto.",
       },
-      { status: 400 },
+      { status: errorStatus(error) },
     );
   }
 }
 
 export async function PATCH(request: Request) {
   try {
-    const { supabase, restaurantId } = await requireManager(request);
+    const { restaurantId } = await requireManager(request);
     const body = await request.json();
 
-    const id = String(body.id ?? "").trim();
-    const name = String(body.name ?? "").trim();
-    const description = String(body.description ?? "").trim();
-    const categoryId = String(body.category_id ?? "").trim();
-    const imageUrl = String(body.image_url ?? "").trim();
-    const preparationArea = String(body.preparation_area ?? "").trim();
-    const price = Number(body.price ?? 0);
+    const id = normalizeText(body.id);
+    const name = normalizeText(body.name);
+    const description = normalizeText(body.description);
+    const categoryId = normalizeText(body.category_id);
+    const imageUrl = normalizeText(body.image_url);
+    const preparationArea = normalizeText(body.preparation_area);
+    const price = normalizePrice(body.price);
     const isFeatured = Boolean(body.is_featured ?? false);
     const isActive = Boolean(body.is_active ?? false);
 
@@ -210,13 +237,13 @@ export async function PATCH(request: Request) {
       throw new Error("Informe um preço válido.");
     }
 
-    if (!ALLOWED_PREPARATION_AREAS.includes(preparationArea)) {
+    if (!ALLOWED_PREPARATION_AREAS.includes(preparationArea as (typeof ALLOWED_PREPARATION_AREAS)[number])) {
       throw new Error("Selecione uma área de preparo válida.");
     }
 
-    await validateCategory({ supabase, restaurantId, categoryId });
+    await validateCategory({ restaurantId, categoryId });
 
-    const { data: product, error } = await supabase
+    const { data: product, error } = await supabaseAdmin
       .from("products")
       .update({
         category_id: categoryId,
@@ -233,10 +260,14 @@ export async function PATCH(request: Request) {
       .select(
         "id, restaurant_id, category_id, name, description, price, image_url, preparation_area, is_active, is_featured, sort_order, created_at",
       )
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw new Error(error.message);
+    }
+
+    if (!product) {
+      throw new Error("Produto não encontrado para este restaurante.");
     }
 
     return NextResponse.json({
@@ -250,7 +281,7 @@ export async function PATCH(request: Request) {
             ? error.message
             : "Erro ao atualizar produto.",
       },
-      { status: 400 },
+      { status: errorStatus(error) },
     );
   }
 }

@@ -55,6 +55,7 @@ export function ProductList({
     useState<ProductFormState | null>(null);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [editingError, setEditingError] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalProducts(products);
@@ -68,6 +69,7 @@ export function ProductList({
     try {
       setSavingProductId(editingProduct.id);
       setMessage(null);
+      setEditingError(null);
 
       const {
         data: { session },
@@ -87,7 +89,7 @@ export function ProductList({
           id: editingProduct.id,
           name: editingProduct.name,
           description: editingProduct.description,
-          price: Number(editingProduct.price),
+          price: Number(editingProduct.price.replace(",", ".")),
           category_id: editingProduct.category_id,
           image_url: editingProduct.image_url,
           preparation_area: editingProduct.preparation_area,
@@ -96,10 +98,14 @@ export function ProductList({
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(data.message ?? "Erro ao atualizar produto.");
+      }
+
+      if (!data.product) {
+        throw new Error("A API não retornou o produto atualizado.");
       }
 
       const updatedProduct = data.product as Product;
@@ -114,9 +120,11 @@ export function ProductList({
       setEditingProduct(null);
       setMessage("Produto atualizado com sucesso.");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Erro ao atualizar produto.",
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro ao atualizar produto.";
+
+      setEditingError(errorMessage);
+      setMessage(errorMessage);
     } finally {
       setSavingProductId(null);
     }
@@ -199,7 +207,11 @@ export function ProductList({
 
           <button
             type="button"
-            onClick={() => setEditingProduct(createFormState(product))}
+            onClick={() => {
+              setMessage(null);
+              setEditingError(null);
+              setEditingProduct(createFormState(product));
+            }}
             className="mt-4 min-h-12 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200 transition active:scale-[0.99]"
           >
             Editar produto
@@ -229,6 +241,13 @@ export function ProductList({
                 Fechar
               </button>
             </div>
+
+
+            {editingError && (
+              <div className="mb-4 rounded-2xl border border-red-400/30 bg-red-400/10 p-3 text-sm leading-relaxed text-red-100">
+                {editingError}
+              </div>
+            )}
 
             <div className="space-y-3">
               <input
