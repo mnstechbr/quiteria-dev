@@ -20,6 +20,19 @@ export type CreateProductInput = {
   description?: string;
   price: number;
   category_id: string;
+  image_url?: string;
   preparation_area: PreparationArea;
+  is_featured?: boolean;
+};
+
+export type UpdateProductInput = {
+  id: string;
+  name?: string;
+  description?: string;
+  price?: number;
+  category_id?: string;
+  image_url?: string | null;
+  preparation_area?: PreparationArea;
+  is_active?: boolean;
   is_featured?: boolean;
 };

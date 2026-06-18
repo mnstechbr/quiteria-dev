@@ -12,6 +12,10 @@ type OrderRequestItem = {
   quantity?: number;
 };
 
+type RestaurantSettings = {
+  require_order_approval: boolean | null;
+};
+
 function normalizeItems(items: unknown): OrderRequestItem[] {
   if (!Array.isArray(items)) {
     return [];
@@ -24,6 +28,22 @@ function normalizeItems(items: unknown): OrderRequestItem[] {
         : undefined,
     quantity: Number(item?.quantity ?? 0),
   }));
+}
+
+async function getRestaurantSettings(restaurantId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("restaurant_settings")
+    .select("require_order_approval")
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle<RestaurantSettings>();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    requireOrderApproval: data?.require_order_approval ?? true,
+  };
 }
 
 export async function POST(request: Request) {
@@ -71,13 +91,16 @@ export async function POST(request: Request) {
       throw new Error("A conta já foi solicitada para esta mesa.");
     }
 
+    const settings = await getRestaurantSettings(tableSession.restaurant_id);
+    const requiresApproval = settings.requireOrderApproval;
+    const orderStatus = requiresApproval ? "WAITING_APPROVAL" : "RECEIVED";
+    const itemStatus = requiresApproval ? "WAITING_APPROVAL" : "RECEIVED";
+
     const productIds = validItems.map((item) => item.productId as string);
 
     const { data: products, error: productsError } = await supabaseAdmin
       .from("products")
-      .select(
-        "id, restaurant_id, name, price, preparation_area, is_active",
-      )
+      .select("id, restaurant_id, name, price, preparation_area, is_active")
       .eq("restaurant_id", tableSession.restaurant_id)
       .in("id", productIds)
       .eq("is_active", true);
@@ -110,7 +133,7 @@ export async function POST(request: Request) {
         unit_price: unitPrice,
         total_price: totalPrice,
         notes: null,
-        status: "WAITING_APPROVAL",
+        status: itemStatus,
         preparation_area: product.preparation_area,
       };
     });
@@ -120,15 +143,20 @@ export async function POST(request: Request) {
       0,
     );
 
+    const now = new Date().toISOString();
+
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
         restaurant_id: tableSession.restaurant_id,
         table_session_id: tableSession.id,
-        status: "WAITING_APPROVAL",
+        status: orderStatus,
         total_amount: totalAmount,
+        approved_at: requiresApproval ? null : now,
       })
-      .select("id, restaurant_id, table_session_id, status, total_amount, created_at")
+      .select(
+        "id, restaurant_id, table_session_id, status, total_amount, created_at, approved_at",
+      )
       .single();
 
     if (orderError) {
@@ -146,6 +174,17 @@ export async function POST(request: Request) {
 
     if (orderItemsError) {
       throw new Error(orderItemsError.message);
+    }
+
+    if (!requiresApproval && tableSession.status === "PENDING_APPROVAL") {
+      await supabaseAdmin
+        .from("table_sessions")
+        .update({
+          status: "OPEN",
+          approved_at: now,
+        })
+        .eq("id", tableSession.id)
+        .eq("status", "PENDING_APPROVAL");
     }
 
     return NextResponse.json(

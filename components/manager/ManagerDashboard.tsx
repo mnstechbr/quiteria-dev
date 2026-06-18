@@ -94,17 +94,23 @@ export function ManagerDashboard({ dashboard }: ManagerDashboardProps) {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 min-[390px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
       {cards.map((card) => (
         <div
           key={card.label}
-          className={`rounded-2xl border p-5 ${card.className}`}
+          className={`min-w-0 rounded-2xl border p-3 sm:p-5 ${card.className}`}
         >
-          <p className="text-sm text-zinc-400">{card.label}</p>
-          <p className={`mt-2 text-3xl font-bold ${card.valueClassName}`}>
+          <p className="text-xs leading-tight text-zinc-400 sm:text-sm">
+            {card.label}
+          </p>
+          <p
+            className={`mt-1 break-words text-xl font-bold leading-tight sm:mt-2 sm:text-3xl ${card.valueClassName}`}
+          >
             {card.value}
           </p>
-          <p className="mt-2 text-xs text-zinc-500">{card.detail}</p>
+          <p className="mt-1 text-[11px] leading-tight text-zinc-500 sm:mt-2 sm:text-xs">
+            {card.detail}
+          </p>
         </div>
       ))}
     </div>

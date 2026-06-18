@@ -24,6 +24,11 @@ type OrderForTotal = {
   total_amount: number | string | null;
 };
 
+type CashierSettings = {
+  default_service_percent: number | string | null;
+  allow_cashier_service_percent_edit: boolean | null;
+};
+
 async function requireCashierAccess(request: Request) {
   const token = getBearerToken(request);
 
@@ -58,6 +63,24 @@ async function requireCashierAccess(request: Request) {
     userId: user.id,
     restaurantId: membership.restaurant_id,
     role: membership.role,
+  };
+}
+
+async function getCashierSettings(restaurantId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("restaurant_settings")
+    .select("default_service_percent, allow_cashier_service_percent_edit")
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle<CashierSettings>();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    defaultServicePercent: Number(data?.default_service_percent ?? 0),
+    allowCashierServicePercentEdit:
+      data?.allow_cashier_service_percent_edit ?? true,
   };
 }
 
@@ -121,6 +144,7 @@ function normalizeBill(session: any) {
 export async function GET(request: Request) {
   try {
     const { restaurantId } = await requireCashierAccess(request);
+    const settings = await getCashierSettings(restaurantId);
 
     const { data: tables, error: tablesError } = await supabaseAdmin
       .from("tables")
@@ -215,6 +239,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       tables: tablesWithStatus,
       bills,
+      settings,
     });
   } catch (error) {
     return NextResponse.json(
@@ -233,11 +258,15 @@ export async function PATCH(request: Request) {
   try {
     const { restaurantId, userId } = await requireCashierAccess(request);
     const body = await request.json();
+    const settings = await getCashierSettings(restaurantId);
 
     const sessionId = String(body.sessionId ?? "").trim();
     const paymentMethod = String(body.paymentMethod ?? "").trim();
     const action = String(body.action ?? "").trim();
-    const servicePercent = Number(body.servicePercent ?? 0);
+    const requestedServicePercent = Number(body.servicePercent ?? 0);
+    const servicePercent = settings.allowCashierServicePercentEdit
+      ? requestedServicePercent
+      : settings.defaultServicePercent;
 
     if (action !== "CLOSE_BILL") {
       throw new Error("Ação inválida.");
@@ -324,6 +353,8 @@ export async function PATCH(request: Request) {
         service_percent: servicePercent,
         service_amount: serviceAmount,
         final_amount: finalAmount,
+        allow_cashier_service_percent_edit:
+          settings.allowCashierServicePercentEdit,
       },
     });
 

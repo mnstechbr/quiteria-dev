@@ -38,9 +38,18 @@ type PublicMenuSession = {
   status: string;
 };
 
+type PublicMenuSettings = {
+  logo_url: string | null;
+  banner_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  require_table_approval?: boolean | null;
+};
+
 type PublicMenuResponse = {
   table: PublicMenuTable;
   session: PublicMenuSession;
+  settings: PublicMenuSettings;
   categories: PublicMenuCategory[];
 };
 
@@ -76,7 +85,6 @@ export default function PublicMenuPage({ params }: PublicMenuPageProps) {
         setErrorMessage(null);
 
         const response = await fetch(`/api/public/menu/${qrToken}`);
-
         const data = await response.json();
 
         if (!response.ok) {
@@ -125,6 +133,7 @@ export default function PublicMenuPage({ params }: PublicMenuPageProps) {
       table={menuData.table}
       session={menuData.session}
       categories={menuData.categories}
+      settings={menuData.settings}
     />
   );
 }

@@ -23,7 +23,7 @@ export function PendingOrdersList({
 }: PendingOrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center">
+      <div className="rounded-2xl border border-dashed border-white/10 p-5 text-center sm:p-8">
         <p className="text-sm text-zinc-400">
           Nenhum pedido aguardando aprovação no momento.
         </p>
@@ -32,11 +32,11 @@ export function PendingOrdersList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {orders.map((order) => (
         <div
           key={order.id}
-          className="rounded-2xl border border-yellow-300/40 bg-yellow-300/10 p-4 shadow-[0_0_18px_rgba(253,224,71,0.10)]"
+          className="rounded-2xl border border-yellow-300/40 bg-yellow-300/10 p-3 sm:p-4 shadow-[0_0_18px_rgba(253,224,71,0.10)]"
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
@@ -50,7 +50,7 @@ export function PendingOrdersList({
             </div>
 
             <div className="text-left md:text-right">
-              <p className="text-lg font-semibold text-white">
+              <p className="text-base font-semibold text-white sm:text-lg">
                 {formatCurrency(order.total_amount)}
               </p>
 
@@ -60,7 +60,7 @@ export function PendingOrdersList({
             </div>
           </div>
 
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 space-y-2 sm:mt-4">
             {order.items.map((item) => (
               <div
                 key={item.id}

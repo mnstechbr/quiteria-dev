@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   CashierBill,
+  CashierSettings,
   CashierTableList,
 } from "@/components/cashier/CashierTableList";
 import { Button } from "@/components/ui/Button";
@@ -19,6 +20,10 @@ export default function CashierPage() {
   const [userName, setUserName] = useState("");
   const [tables, setTables] = useState<TableWithStatus[]>([]);
   const [bills, setBills] = useState<CashierBill[]>([]);
+  const [cashierSettings, setCashierSettings] = useState<CashierSettings>({
+    defaultServicePercent: 0,
+    allowCashierServicePercentEdit: true,
+  });
   const [closingSessionId, setClosingSessionId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -87,6 +92,11 @@ export default function CashierPage() {
 
     setTables(data.tables ?? []);
     setBills(data.bills ?? []);
+    setCashierSettings({
+      defaultServicePercent: Number(data.settings?.defaultServicePercent ?? 0),
+      allowCashierServicePercentEdit:
+        data.settings?.allowCashierServicePercentEdit ?? true,
+    });
   }
 
   async function handleCloseBill(
@@ -180,6 +190,7 @@ export default function CashierPage() {
         <CashierTableList
           tables={tables}
           bills={bills}
+          settings={cashierSettings}
           closingSessionId={closingSessionId}
           onCloseBill={handleCloseBill}
         />

@@ -39,9 +39,15 @@ export type CashierBill = {
   orders: CashierBillOrder[];
 };
 
+export type CashierSettings = {
+  defaultServicePercent: number;
+  allowCashierServicePercentEdit: boolean;
+};
+
 type CashierTableListProps = {
   tables: CashierTable[];
   bills: CashierBill[];
+  settings: CashierSettings;
   closingSessionId: string | null;
   onCloseBill: (
     sessionId: string,
@@ -96,6 +102,7 @@ function calculateServiceAmount(subtotal: number, percent: number) {
 export function CashierTableList({
   tables,
   bills,
+  settings,
   closingSessionId,
   onCloseBill,
 }: CashierTableListProps) {
@@ -212,7 +219,9 @@ export function CashierTableList({
           <div className="space-y-4">
             {bills.map((bill) => {
               const selectedPaymentMethod = paymentMethods[bill.session_id] ?? "";
-              const servicePercentValue = servicePercents[bill.session_id] ?? "10";
+              const defaultServicePercent = Number(settings.defaultServicePercent ?? 0);
+              const servicePercentValue =
+                servicePercents[bill.session_id] ?? String(defaultServicePercent);
               const servicePercent = Number(servicePercentValue || 0);
               const serviceAmount = calculateServiceAmount(
                 bill.total_amount,
@@ -298,14 +307,21 @@ export function CashierTableList({
                           max="100"
                           step="0.01"
                           value={servicePercentValue}
+                          disabled={!settings.allowCashierServicePercentEdit}
                           onChange={(event) =>
                             handleServicePercentChange(
                               bill.session_id,
                               event.target.value,
                             )
                           }
-                          className="mt-1 w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-orange-500"
+                          className="mt-1 w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
                         />
+
+                        {!settings.allowCashierServicePercentEdit && (
+                          <p className="mt-1 text-xs text-zinc-500">
+                            Taxa fixa definida nas configurações do restaurante.
+                          </p>
+                        )}
                       </div>
 
                       <div>
