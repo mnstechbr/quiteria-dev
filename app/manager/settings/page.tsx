@@ -1,9 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  ManagerMobileShell,
+  MobileMessage,
+  MobileSectionCard,
+} from "@/components/manager/ManagerMobileShell";
 import { ManagerSettingsForm } from "@/components/manager/ManagerSettingsForm";
-import { Button } from "@/components/ui/Button";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
@@ -82,65 +85,34 @@ export default function ManagerSettingsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
         Carregando configurações...
       </main>
     );
   }
 
-  if (!allowed) {
-    return null;
-  }
+  if (!allowed) return null;
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8 text-white">
-      <section className="mx-auto max-w-5xl space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div>
-            <p className="text-sm font-medium text-orange-400">
-              Configurações do Restaurante
-            </p>
+    <ManagerMobileShell
+      title="Configurações"
+      description="Identidade visual, regras de aprovação e taxa de serviço do restaurante."
+      activeHref="/manager/settings"
+      onLogout={handleLogout}
+    >
+      {errorMessage && <MobileMessage message={errorMessage} />}
 
-            <h1 className="mt-2 text-4xl font-bold tracking-tight">
-              Quitéria
-            </h1>
-
-            <p className="mt-3 text-zinc-400">
-              Ajuste identidade visual e regras operacionais do restaurante.
-            </p>
-          </div>
-
-          <div className="flex gap-3">
-            <Link
-              href="/manager"
-              className="rounded-xl border border-white/10 px-4 py-2 text-sm text-zinc-300 transition hover:border-orange-500 hover:text-white"
-            >
-              Voltar
-            </Link>
-
-            <Button
-              type="button"
-              onClick={handleLogout}
-              className="border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
-            >
-              Sair
-            </Button>
-          </div>
-        </div>
-
-        {errorMessage && (
-          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
-            {errorMessage}
-          </div>
-        )}
-
-        {settingsData && accessToken && (
+      {settingsData && accessToken && (
+        <MobileSectionCard
+          title="Restaurante"
+          description="Formulário em blocos verticais para edição segura pelo celular."
+        >
           <ManagerSettingsForm
             initialData={settingsData}
             accessToken={accessToken}
           />
-        )}
-      </section>
-    </main>
+        </MobileSectionCard>
+      )}
+    </ManagerMobileShell>
   );
 }

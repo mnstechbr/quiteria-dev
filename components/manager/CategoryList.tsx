@@ -9,32 +9,40 @@ type CategoryListProps = {
 export function CategoryList({ categories }: CategoryListProps) {
   if (categories.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-white/10 p-5 text-center">
+      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
         <p className="text-sm text-zinc-400">Nenhuma categoria cadastrada.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="space-y-3">
       {categories.map((category) => (
-        <div
+        <article
           key={category.id}
-          className="flex min-h-[58px] items-center justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-900/70 px-3 py-2 sm:min-h-[64px] sm:px-4 sm:py-3"
+          className="w-full rounded-3xl border border-white/10 bg-zinc-900/70 p-4"
         >
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold leading-tight sm:text-base">
-              {category.name}
-            </p>
-            <p className="mt-0.5 text-[11px] text-zinc-500 sm:text-xs">
-              Ordem: {category.sort_order ?? "-"}
-            </p>
-          </div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="break-words text-base font-black leading-tight text-white">
+                {category.name}
+              </p>
+              <p className="mt-1 text-xs text-zinc-500">
+                Ordem: {category.sort_order ?? "-"}
+              </p>
+            </div>
 
-          <span className="shrink-0 rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-zinc-300 sm:text-xs">
-            {category.is_active ? "Ativa" : "Inativa"}
-          </span>
-        </div>
+            <span
+              className={`shrink-0 rounded-full border px-3 py-1 text-xs font-bold ${
+                category.is_active
+                  ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                  : "border-red-400/30 bg-red-400/10 text-red-300"
+              }`}
+            >
+              {category.is_active ? "Ativa" : "Inativa"}
+            </span>
+          </div>
+        </article>
       ))}
     </div>
   );

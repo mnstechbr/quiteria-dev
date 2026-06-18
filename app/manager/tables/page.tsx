@@ -1,23 +1,73 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ManagerMobileShell,
+  MobileMetricCard,
+  MobileSectionCard,
+} from "@/components/manager/ManagerMobileShell";
 import { TableGrid } from "@/components/manager/TableGrid";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
-import { TableWithStatus } from "@/types/table";
+import { TableOperationalStatus, TableWithStatus } from "@/types/table";
+
+type TableFilter = "ALL" | TableOperationalStatus;
+
+const TABLE_FILTERS: Array<{ id: TableFilter; label: string }> = [
+  { id: "ALL", label: "Todas" },
+  { id: "PENDING_APPROVAL", label: "Aprovar" },
+  { id: "OPEN", label: "Atendimento" },
+  { id: "BILL_REQUESTED", label: "Conta" },
+  { id: "AVAILABLE", label: "Livres" },
+];
+
+const TABLE_STATUS_ORDER: Record<TableOperationalStatus, number> = {
+  BILL_REQUESTED: 0,
+  PENDING_APPROVAL: 1,
+  OPEN: 2,
+  AVAILABLE: 3,
+  CLOSED: 4,
+};
 
 export default function ManagerTablesPage() {
   const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
   const [tables, setTables] = useState<TableWithStatus[]>([]);
+  const [tableFilter, setTableFilter] = useState<TableFilter>("ALL");
   const [approvingTableId, setApprovingTableId] = useState<string | null>(null);
   const [requestingBillTableId, setRequestingBillTableId] = useState<string | null>(null);
   const [closingTableId, setClosingTableId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  const tableCounters = useMemo(() => {
+    return tables.reduce(
+      (counters, table) => {
+        if (table.operational_status === "AVAILABLE") counters.available += 1;
+        if (table.operational_status === "PENDING_APPROVAL") counters.pending += 1;
+        if (table.operational_status === "OPEN") counters.open += 1;
+        if (table.operational_status === "BILL_REQUESTED") counters.bill += 1;
+        return counters;
+      },
+      { available: 0, pending: 0, open: 0, bill: 0 },
+    );
+  }, [tables]);
+
+  const filteredTables = useMemo(() => {
+    return tables
+      .filter((table) =>
+        tableFilter === "ALL" ? true : table.operational_status === tableFilter,
+      )
+      .sort((firstTable, secondTable) => {
+        const statusDiff =
+          TABLE_STATUS_ORDER[firstTable.operational_status] -
+          TABLE_STATUS_ORDER[secondTable.operational_status];
+
+        if (statusDiff !== 0) return statusDiff;
+        return firstTable.name.localeCompare(secondTable.name, "pt-BR");
+      });
+  }, [tableFilter, tables]);
 
   useEffect(() => {
     async function initializePage() {
@@ -132,9 +182,32 @@ export default function ManagerTablesPage() {
       setMessage(successMessage);
       await loadTables().catch(() => null);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao atualizar mesa.");
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao atualizar mesa.",
+      );
     } finally {
       loadingSetter(null);
+    }
+  }
+
+  function getFilterCount(filter: TableFilter) {
+    if (filter === "ALL") return tables.length;
+    if (filter === "AVAILABLE") return tableCounters.available;
+    if (filter === "PENDING_APPROVAL") return tableCounters.pending;
+    if (filter === "OPEN") return tableCounters.open;
+    if (filter === "BILL_REQUESTED") return tableCounters.bill;
+    return 0;
+  }
+
+  async function handleRefresh() {
+    try {
+      setMessage(null);
+      await loadTables();
+      setMessage("Mesas atualizadas.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao atualizar mesas.",
+      );
     }
   }
 
@@ -145,7 +218,7 @@ export default function ManagerTablesPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
         Carregando mesas...
       </main>
     );
@@ -154,80 +227,90 @@ export default function ManagerTablesPage() {
   if (!allowed) return null;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-zinc-950 px-3 py-4 pb-24 text-white sm:p-8">
-      <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <Link href="/manager" className="text-xs font-medium text-orange-400 hover:text-orange-300">
-              ← Voltar ao painel
-            </Link>
-            <h1 className="mt-2 text-3xl font-bold">Mesas</h1>
-            <p className="mt-1 text-sm text-zinc-400">
-              Status operacional, aprovação, solicitação de conta e fechamento.
-            </p>
-          </div>
+    <ManagerMobileShell
+      title="Mesas"
+      description="Aprovação, atendimento, conta solicitada e fechamento em lista mobile."
+      activeHref="/manager/tables"
+      onLogout={handleLogout}
+    >
+      <div className="grid grid-cols-4 gap-2">
+        <MobileMetricCard label="Livres" value={tableCounters.available} />
+        <MobileMetricCard label="Aprovar" value={tableCounters.pending} />
+        <MobileMetricCard label="Atend." value={tableCounters.open} />
+        <MobileMetricCard label="Conta" value={tableCounters.bill} />
+      </div>
 
+      <MobileSectionCard
+        title="Mapa de mesas"
+        description="Filtre por situação e veja tudo de cima a baixo."
+        action={
           <Button
             type="button"
-            onClick={handleLogout}
-            className="w-full border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white sm:w-auto"
+            onClick={handleRefresh}
+            className="px-3 py-2 text-xs"
           >
-            Sair
+            Atualizar
           </Button>
+        }
+      >
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {TABLE_FILTERS.map((filter) => {
+            const isActive = tableFilter === filter.id;
+
+            return (
+              <button
+                key={filter.id}
+                type="button"
+                onClick={() => setTableFilter(filter.id)}
+                className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-semibold transition active:scale-95 ${
+                  isActive
+                    ? "border-orange-500 bg-orange-500 text-white"
+                    : "border-white/10 bg-zinc-900 text-zinc-300"
+                }`}
+              >
+                {filter.label} <span className="opacity-80">{getFilterCount(filter.id)}</span>
+              </button>
+            );
+          })}
         </div>
 
-        <Card>
-          <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold sm:text-xl">Mapa de mesas</h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                Visual compacto para celular e grade ampla no desktop.
-              </p>
-            </div>
+        {message && (
+          <p className="mb-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-zinc-300">
+            {message}
+          </p>
+        )}
 
-            <Button
-              type="button"
-              onClick={() => loadTables().catch(() => null)}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 sm:w-auto"
-            >
-              Atualizar
-            </Button>
-          </div>
-
-          {message && <p className="mb-4 text-sm text-zinc-300">{message}</p>}
-
-          <TableGrid
-            tables={tables}
-            approvingTableId={approvingTableId}
-            requestingBillTableId={requestingBillTableId}
-            closingTableId={closingTableId}
-            onApproveSession={(tableId) =>
-              updateTableStatus({
-                tableId,
-                action: "APPROVE_SESSION",
-                loadingSetter: setApprovingTableId,
-                successMessage: "Mesa aprovada com sucesso.",
-              })
-            }
-            onRequestBill={(tableId) =>
-              updateTableStatus({
-                tableId,
-                action: "REQUEST_BILL",
-                loadingSetter: setRequestingBillTableId,
-                successMessage: "Solicitação de conta registrada.",
-              })
-            }
-            onCloseSession={(tableId) =>
-              updateTableStatus({
-                tableId,
-                action: "CLOSE_SESSION",
-                loadingSetter: setClosingTableId,
-                successMessage: "Mesa fechada com sucesso.",
-              })
-            }
-          />
-        </Card>
-      </section>
-    </main>
+        <TableGrid
+          tables={filteredTables}
+          approvingTableId={approvingTableId}
+          requestingBillTableId={requestingBillTableId}
+          closingTableId={closingTableId}
+          onApproveSession={(tableId) =>
+            updateTableStatus({
+              tableId,
+              action: "APPROVE_SESSION",
+              loadingSetter: setApprovingTableId,
+              successMessage: "Mesa aprovada com sucesso.",
+            })
+          }
+          onRequestBill={(tableId) =>
+            updateTableStatus({
+              tableId,
+              action: "REQUEST_BILL",
+              loadingSetter: setRequestingBillTableId,
+              successMessage: "Solicitação de conta registrada.",
+            })
+          }
+          onCloseSession={(tableId) =>
+            updateTableStatus({
+              tableId,
+              action: "CLOSE_SESSION",
+              loadingSetter: setClosingTableId,
+              successMessage: "Mesa fechada com sucesso.",
+            })
+          }
+        />
+      </MobileSectionCard>
+    </ManagerMobileShell>
   );
 }

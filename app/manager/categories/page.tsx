@@ -1,11 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CategoryList } from "@/components/manager/CategoryList";
 import { CreateCategoryForm } from "@/components/manager/CreateCategoryForm";
+import {
+  ManagerMobileShell,
+  MobileMetricCard,
+  MobileSectionCard,
+} from "@/components/manager/ManagerMobileShell";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
@@ -15,6 +18,12 @@ export default function ManagerCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const activeCategories = useMemo(
+    () => categories.filter((category) => category.is_active).length,
+    [categories],
+  );
 
   useEffect(() => {
     async function initializePage() {
@@ -79,6 +88,19 @@ export default function ManagerCategoriesPage() {
 
   function handleCategoryCreated(category: Category) {
     setCategories((currentCategories) => [...currentCategories, category]);
+    setMessage("Categoria criada com sucesso.");
+  }
+
+  async function handleRefresh() {
+    try {
+      setMessage(null);
+      await loadCategories();
+      setMessage("Categorias atualizadas.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao atualizar categorias.",
+      );
+    }
   }
 
   async function handleLogout() {
@@ -88,7 +110,7 @@ export default function ManagerCategoriesPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
         Carregando categorias...
       </main>
     );
@@ -97,54 +119,39 @@ export default function ManagerCategoriesPage() {
   if (!allowed) return null;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-zinc-950 px-3 py-4 pb-24 text-white sm:p-8">
-      <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <Link href="/manager" className="text-xs font-medium text-orange-400 hover:text-orange-300">
-              ← Voltar ao painel
-            </Link>
-            <h1 className="mt-2 text-3xl font-bold">Categorias</h1>
-            <p className="mt-1 text-sm text-zinc-400">
-              Organize o cardápio em grupos simples e fáceis de navegar.
-            </p>
-          </div>
+    <ManagerMobileShell
+      title="Categorias"
+      description="Organize o cardápio em grupos simples para o cliente navegar pelo celular."
+      activeHref="/manager/categories"
+      action={<CreateCategoryForm onCreated={handleCategoryCreated} />}
+      onLogout={handleLogout}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <MobileMetricCard label="Total" value={categories.length} />
+        <MobileMetricCard label="Ativas" value={activeCategories} />
+      </div>
 
-          <div className="grid gap-2 sm:flex sm:items-center">
-            <CreateCategoryForm onCreated={handleCategoryCreated} />
-            <Button
-              type="button"
-              onClick={handleLogout}
-              className="w-full border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white sm:w-auto"
-            >
-              Sair
-            </Button>
-          </div>
-        </div>
+      <MobileSectionCard
+        title="Categorias cadastradas"
+        description="Lista vertical, sem grade desktop e sem corte lateral."
+        action={
+          <Button
+            type="button"
+            onClick={handleRefresh}
+            className="px-3 py-2 text-xs"
+          >
+            Atualizar
+          </Button>
+        }
+      >
+        {message && (
+          <p className="mb-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-zinc-300">
+            {message}
+          </p>
+        )}
 
-        <Card>
-          <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold sm:text-xl">
-                Categorias cadastradas
-              </h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                Lista compacta para gerenciamento no celular.
-              </p>
-            </div>
-
-            <Button
-              type="button"
-              onClick={() => loadCategories().catch(() => null)}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 sm:w-auto"
-            >
-              Atualizar
-            </Button>
-          </div>
-
-          <CategoryList categories={categories} />
-        </Card>
-      </section>
-    </main>
+        <CategoryList categories={categories} />
+      </MobileSectionCard>
+    </ManagerMobileShell>
   );
 }

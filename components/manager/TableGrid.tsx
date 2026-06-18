@@ -59,14 +59,14 @@ export function TableGrid({
 }: TableGridProps) {
   if (tables.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-white/10 p-6 text-center">
-        <p className="text-sm text-zinc-400">Nenhuma mesa cadastrada.</p>
+      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
+        <p className="text-sm text-zinc-400">Nenhuma mesa encontrada.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="space-y-3">
       {tables.map((table) => {
         const statusInfo = getTableStatusInfo(table.operational_status);
         const isPendingApproval =
@@ -79,43 +79,55 @@ export function TableGrid({
         const isClosing = closingTableId === table.id;
 
         return (
-          <div
+          <article
             key={table.id}
-            className={`min-w-0 rounded-2xl border p-3 transition sm:p-4 sm:hover:-translate-y-0.5 ${statusInfo.card}`}
+            className={`w-full overflow-hidden rounded-3xl border p-4 transition active:scale-[0.99] ${statusInfo.card}`}
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold sm:text-base">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="break-words text-xl font-black leading-tight">
                   {table.name}
                 </p>
 
                 <p
-                  className={`mt-1 text-[11px] font-medium leading-snug sm:text-xs ${statusInfo.text}`}
+                  className={`mt-1 text-sm font-bold leading-snug ${statusInfo.text}`}
                 >
                   {statusInfo.label}
                 </p>
               </div>
 
               <span
-                className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full sm:h-3 sm:w-3 ${statusInfo.dot}`}
+                className={`mt-1 h-3 w-3 shrink-0 rounded-full ${statusInfo.dot}`}
               />
             </div>
 
-            <p className="mt-3 text-[11px] text-zinc-500 sm:text-xs">
-              {table.is_active ? "Mesa ativa" : "Mesa inativa"}
-            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <p className="text-zinc-500">Mesa</p>
+                <p className="mt-1 font-bold text-zinc-200">
+                  {table.is_active ? "Ativa" : "Inativa"}
+                </p>
+              </div>
 
-            <p className="mt-2 truncate text-[10px] text-zinc-600 sm:text-xs">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <p className="text-zinc-500">Sessão</p>
+                <p className="mt-1 truncate font-bold text-zinc-200">
+                  {table.active_session_id ? "Aberta" : "Sem sessão"}
+                </p>
+              </div>
+            </div>
+
+            <p className="mt-3 break-all rounded-2xl border border-white/10 bg-black/20 p-3 text-[11px] leading-relaxed text-zinc-500">
               QR: {table.qr_token}
             </p>
 
-            <div className="mt-3 space-y-2">
+            <div className="mt-4 space-y-2">
               {isPendingApproval && onApproveSession && (
                 <button
                   type="button"
                   disabled={isApproving}
                   onClick={() => onApproveSession(table.id)}
-                  className="w-full rounded-xl bg-yellow-300 px-3 py-2 text-[11px] font-bold text-zinc-950 transition hover:bg-yellow-200 disabled:cursor-not-allowed disabled:opacity-60 sm:text-xs"
+                  className="min-h-12 w-full rounded-2xl bg-yellow-300 px-4 py-3 text-sm font-black text-zinc-950 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isApproving ? "Aprovando..." : "Aprovar mesa"}
                 </button>
@@ -126,7 +138,7 @@ export function TableGrid({
                   type="button"
                   disabled={isRequestingBill}
                   onClick={() => onRequestBill(table.id)}
-                  className="w-full rounded-xl bg-red-400 px-3 py-2 text-[11px] font-bold text-white transition hover:bg-red-300 disabled:cursor-not-allowed disabled:opacity-60 sm:text-xs"
+                  className="min-h-12 w-full rounded-2xl bg-red-400 px-4 py-3 text-sm font-black text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isRequestingBill ? "Solicitando..." : "Solicitar conta"}
                 </button>
@@ -137,13 +149,13 @@ export function TableGrid({
                   type="button"
                   disabled={isClosing}
                   onClick={() => onCloseSession(table.id)}
-                  className="w-full rounded-xl bg-emerald-400 px-3 py-2 text-[11px] font-bold text-zinc-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 sm:text-xs"
+                  className="min-h-12 w-full rounded-2xl bg-emerald-400 px-4 py-3 text-sm font-black text-zinc-950 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isClosing ? "Fechando..." : "Fechar mesa"}
                 </button>
               )}
             </div>
-          </div>
+          </article>
         );
       })}
     </div>

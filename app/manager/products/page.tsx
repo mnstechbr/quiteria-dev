@@ -1,11 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CreateProductForm } from "@/components/manager/CreateProductForm";
+import {
+  ManagerMobileShell,
+  MobileMetricCard,
+  MobileSectionCard,
+} from "@/components/manager/ManagerMobileShell";
 import { ProductList } from "@/components/manager/ProductList";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
@@ -17,6 +20,17 @@ export default function ManagerProductsPage() {
   const [allowed, setAllowed] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const activeProducts = useMemo(
+    () => products.filter((product) => product.is_active).length,
+    [products],
+  );
+
+  const featuredProducts = useMemo(
+    () => products.filter((product) => product.is_featured).length,
+    [products],
+  );
 
   useEffect(() => {
     async function initializePage() {
@@ -98,6 +112,7 @@ export default function ManagerProductsPage() {
 
   function handleProductCreated(product: Product) {
     setProducts((currentProducts) => [...currentProducts, product]);
+    setMessage("Produto criado com sucesso.");
   }
 
   function handleProductUpdated(product: Product) {
@@ -106,6 +121,19 @@ export default function ManagerProductsPage() {
         currentProduct.id === product.id ? product : currentProduct,
       ),
     );
+    setMessage("Produto atualizado com sucesso.");
+  }
+
+  async function handleRefresh() {
+    try {
+      setMessage(null);
+      await Promise.all([loadCategories(), loadProducts()]);
+      setMessage("Produtos atualizados.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao atualizar produtos.",
+      );
+    }
   }
 
   async function handleLogout() {
@@ -115,7 +143,7 @@ export default function ManagerProductsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
         Carregando produtos...
       </main>
     );
@@ -124,61 +152,55 @@ export default function ManagerProductsPage() {
   if (!allowed) return null;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-zinc-950 px-3 py-4 pb-24 text-white sm:p-8">
-      <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <Link href="/manager" className="text-xs font-medium text-orange-400 hover:text-orange-300">
-              ← Voltar ao painel
-            </Link>
-            <h1 className="mt-2 text-3xl font-bold">Produtos</h1>
-            <p className="mt-1 text-sm text-zinc-400">
-              Cadastro, edição, foto por URL, destaque e disponibilidade.
-            </p>
-          </div>
+    <ManagerMobileShell
+      title="Produtos"
+      description="Cadastre, edite, destaque e organize os itens do cardápio."
+      activeHref="/manager/products"
+      action={
+        <CreateProductForm
+          categories={categories.filter((category) => category.is_active)}
+          onCreated={handleProductCreated}
+        />
+      }
+      onLogout={handleLogout}
+    >
+      <div className="grid grid-cols-3 gap-3">
+        <MobileMetricCard label="Total" value={products.length} />
+        <MobileMetricCard label="Ativos" value={activeProducts} />
+        <MobileMetricCard label="Destaque" value={featuredProducts} />
+      </div>
 
-          <div className="grid gap-2 sm:flex sm:items-center">
-            <CreateProductForm
-              categories={categories.filter((category) => category.is_active)}
-              onCreated={handleProductCreated}
-            />
-            <Button
-              type="button"
-              onClick={handleLogout}
-              className="w-full border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white sm:w-auto"
-            >
-              Sair
-            </Button>
-          </div>
+      {categories.filter((category) => category.is_active).length === 0 && (
+        <div className="rounded-3xl border border-yellow-300/30 bg-yellow-300/10 p-4 text-sm leading-relaxed text-yellow-100">
+          Cadastre uma categoria ativa antes de criar novos produtos.
         </div>
+      )}
 
-        <Card>
-          <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold sm:text-xl">
-                Produtos cadastrados
-              </h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                Lista compacta para uso diário no celular.
-              </p>
-            </div>
+      <MobileSectionCard
+        title="Produtos cadastrados"
+        description="Lista em cards verticais para caber em qualquer celular."
+        action={
+          <Button
+            type="button"
+            onClick={handleRefresh}
+            className="px-3 py-2 text-xs"
+          >
+            Atualizar
+          </Button>
+        }
+      >
+        {message && (
+          <p className="mb-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-zinc-300">
+            {message}
+          </p>
+        )}
 
-            <Button
-              type="button"
-              onClick={() => loadProducts().catch(() => null)}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 sm:w-auto"
-            >
-              Atualizar
-            </Button>
-          </div>
-
-          <ProductList
-            products={products}
-            categories={categories}
-            onUpdated={handleProductUpdated}
-          />
-        </Card>
-      </section>
-    </main>
+        <ProductList
+          products={products}
+          categories={categories}
+          onUpdated={handleProductUpdated}
+        />
+      </MobileSectionCard>
+    </ManagerMobileShell>
   );
 }

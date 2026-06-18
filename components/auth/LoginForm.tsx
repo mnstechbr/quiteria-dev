@@ -17,10 +17,10 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      <div>
-        <label className="mb-2 block text-sm text-zinc-300">
+      <label className="block">
+        <span className="mb-2 block text-sm font-semibold text-zinc-300">
           E-mail
-        </label>
+        </span>
 
         <input
           type="email"
@@ -28,14 +28,14 @@ export function LoginForm() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
-          className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
+          className="min-h-12 w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
         />
-      </div>
+      </label>
 
-      <div>
-        <label className="mb-2 block text-sm text-zinc-300">
+      <label className="block">
+        <span className="mb-2 block text-sm font-semibold text-zinc-300">
           Senha
-        </label>
+        </span>
 
         <input
           type="password"
@@ -43,14 +43,14 @@ export function LoginForm() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
-          className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
+          className="min-h-12 w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
         />
-      </div>
+      </label>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+        className="min-h-12 w-full rounded-2xl bg-orange-500 px-4 py-3 text-base font-black text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Entrando..." : "Entrar"}
       </button>

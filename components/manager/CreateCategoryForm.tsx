@@ -66,7 +66,7 @@ export function CreateCategoryForm({ onCreated }: CreateCategoryFormProps) {
           setMessage(null);
           setOpen(true);
         }}
-        className="w-full justify-center py-3 sm:w-auto sm:py-2"
+        className="min-h-12 w-full rounded-2xl text-sm font-black"
       >
         + Nova Categoria
       </Button>
@@ -76,17 +76,17 @@ export function CreateCategoryForm({ onCreated }: CreateCategoryFormProps) {
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0">
           <form
             onSubmit={handleSubmit}
-            className="w-full max-w-lg rounded-t-3xl border border-white/10 bg-zinc-950 p-4 text-white shadow-2xl sm:rounded-3xl sm:p-6"
+            className="w-full max-w-[480px] rounded-t-3xl border border-white/10 bg-zinc-950 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold sm:text-xl">
+                <h2 className="text-xl font-black">
                   Nova Categoria
                 </h2>
-                <p className="mt-1 text-xs text-zinc-400 sm:text-sm">
+                <p className="mt-1 text-sm leading-relaxed text-zinc-400">
                   Crie categorias para organizar o cardápio.
                 </p>
               </div>
@@ -114,16 +114,16 @@ export function CreateCategoryForm({ onCreated }: CreateCategoryFormProps) {
               <p className="mt-3 text-sm text-zinc-300">{message}</p>
             )}
 
-            <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <div className="mt-4 space-y-3">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-xl border border-white/10 px-4 py-3 text-sm text-zinc-300 hover:text-white sm:py-2"
+                className="min-h-12 w-full rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-zinc-300 hover:text-white"
               >
                 Cancelar
               </button>
 
-              <Button type="submit" disabled={loading} className="py-3 sm:py-2">
+              <Button type="submit" disabled={loading} className="min-h-12 w-full rounded-2xl text-sm font-black">
                 {loading ? "Criando..." : "Criar Categoria"}
               </Button>
             </div>

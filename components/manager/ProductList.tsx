@@ -45,9 +45,14 @@ function createFormState(product: Product): ProductFormState {
   };
 }
 
-export function ProductList({ products, categories = [], onUpdated }: ProductListProps) {
+export function ProductList({
+  products,
+  categories = [],
+  onUpdated,
+}: ProductListProps) {
   const [localProducts, setLocalProducts] = useState<Product[]>(products);
-  const [editingProduct, setEditingProduct] = useState<ProductFormState | null>(null);
+  const [editingProduct, setEditingProduct] =
+    useState<ProductFormState | null>(null);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -109,7 +114,9 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
       setEditingProduct(null);
       setMessage("Produto atualizado com sucesso.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao atualizar produto.");
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao atualizar produto.",
+      );
     } finally {
       setSavingProductId(null);
     }
@@ -117,7 +124,7 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
 
   if (localProducts.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-white/10 p-5 text-center">
+      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
         <p className="text-sm text-zinc-400">Nenhum produto cadastrado ainda.</p>
       </div>
     );
@@ -131,89 +138,85 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
         </p>
       )}
 
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        {localProducts.map((product) => (
-          <div
-            key={product.id}
-            className="rounded-2xl border border-white/10 bg-zinc-900/70 p-2.5"
-          >
-            <div className="flex items-center gap-3">
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-zinc-950">
-                {product.image_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[10px] text-zinc-600">
-                    Sem foto
-                  </div>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold">{product.name}</p>
-                    <p className="mt-0.5 text-sm font-bold text-orange-300">
-                      {formatCurrency(product.price)}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setEditingProduct(createFormState(product))}
-                    className="shrink-0 rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-orange-500 hover:text-white"
-                  >
-                    Editar
-                  </button>
+      {localProducts.map((product) => (
+        <article
+          key={product.id}
+          className="w-full overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/70 p-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">
+              {product.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center px-2 text-center text-[10px] text-zinc-600">
+                  Sem foto
                 </div>
+              )}
+            </div>
 
-                {product.description && (
-                  <p className="mt-1 line-clamp-1 text-xs text-zinc-500">
-                    {product.description}
-                  </p>
-                )}
+            <div className="min-w-0 flex-1">
+              <p className="break-words text-base font-black leading-tight text-white">
+                {product.name}
+              </p>
+              <p className="mt-1 text-base font-black text-orange-300">
+                {formatCurrency(product.price)}
+              </p>
 
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-zinc-300">
-                    {product.preparation_area === "BAR" ? "Bar" : "Cozinha"}
-                  </span>
-
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] ${
-                      product.is_active
-                        ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
-                        : "border-red-400/30 bg-red-400/10 text-red-300"
-                    }`}
-                  >
-                    {product.is_active ? "Ativo" : "Inativo"}
-                  </span>
-
-                  {product.is_featured && (
-                    <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-[10px] text-orange-400">
-                      Destaque
-                    </span>
-                  )}
-                </div>
-              </div>
+              {product.description && (
+                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">
+                  {product.description}
+                </p>
+              )}
             </div>
           </div>
-        ))}
-      </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300">
+              {product.preparation_area === "BAR" ? "Bar" : "Cozinha"}
+            </span>
+
+            <span
+              className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                product.is_active
+                  ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                  : "border-red-400/30 bg-red-400/10 text-red-300"
+              }`}
+            >
+              {product.is_active ? "Ativo" : "Inativo"}
+            </span>
+
+            {product.is_featured && (
+              <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-400">
+                Destaque
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setEditingProduct(createFormState(product))}
+            className="mt-4 min-h-12 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200 transition active:scale-[0.99]"
+          >
+            Editar produto
+          </button>
+        </article>
+      ))}
 
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0">
           <form
             onSubmit={handleSaveProduct}
-            className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-white/10 bg-zinc-950 p-4 text-white shadow-2xl sm:rounded-3xl sm:p-6"
+            className="max-h-[92vh] w-full max-w-[480px] overflow-y-auto rounded-t-3xl border border-white/10 bg-zinc-950 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
           >
             <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold sm:text-xl">Editar produto</h3>
-                <p className="mt-1 text-xs text-zinc-400 sm:text-sm">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xl font-black">Editar produto</h3>
+                <p className="mt-1 text-sm leading-relaxed text-zinc-400">
                   Ajuste informações, preço, foto e disponibilidade.
                 </p>
               </div>
@@ -221,13 +224,13 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
               <button
                 type="button"
                 onClick={() => setEditingProduct(null)}
-                className="rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-400 hover:text-white"
+                className="shrink-0 rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-400 transition active:scale-95"
               >
                 Fechar
               </button>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="space-y-3">
               <input
                 type="text"
                 value={editingProduct.name}
@@ -237,7 +240,7 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
                   )
                 }
                 required
-                className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
               />
 
               <input
@@ -251,18 +254,20 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
                   )
                 }
                 required
-                className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
               />
 
               <select
                 value={editingProduct.category_id}
                 onChange={(event) =>
                   setEditingProduct((current) =>
-                    current ? { ...current, category_id: event.target.value } : current,
+                    current
+                      ? { ...current, category_id: event.target.value }
+                      : current,
                   )
                 }
                 required
-                className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
               >
                 <option value="">Selecione uma categoria</option>
                 {categories.map((category) => (
@@ -281,7 +286,7 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
                       : current,
                   )
                 }
-                className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
               >
                 <option value="KITCHEN">Cozinha</option>
                 <option value="BAR">Bar</option>
@@ -292,11 +297,13 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
                 value={editingProduct.image_url}
                 onChange={(event) =>
                   setEditingProduct((current) =>
-                    current ? { ...current, image_url: event.target.value } : current,
+                    current
+                      ? { ...current, image_url: event.target.value }
+                      : current,
                   )
                 }
                 placeholder="URL da imagem"
-                className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500 md:col-span-2"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
               />
             </div>
 
@@ -309,8 +316,10 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
                   className="h-16 w-16 shrink-0 rounded-xl object-cover"
                 />
                 <div className="min-w-0 flex-1 py-1">
-                  <p className="text-xs font-medium text-zinc-300">Prévia da imagem</p>
-                  <p className="mt-1 truncate text-xs text-zinc-500">
+                  <p className="text-xs font-medium text-zinc-300">
+                    Prévia da imagem
+                  </p>
+                  <p className="mt-1 break-all text-xs text-zinc-500">
                     {editingProduct.image_url}
                   </p>
                 </div>
@@ -321,28 +330,32 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
               value={editingProduct.description}
               onChange={(event) =>
                 setEditingProduct((current) =>
-                  current ? { ...current, description: event.target.value } : current,
+                  current
+                    ? { ...current, description: event.target.value }
+                    : current,
                 )
               }
               placeholder="Descrição"
-              className="mt-3 min-h-[76px] w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+              className="mt-3 min-h-[88px] w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
             />
 
-            <div className="mt-3 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3 sm:grid-cols-2">
-              <label className="flex items-center gap-2 text-sm text-zinc-300">
+            <div className="mt-3 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+              <label className="flex items-center gap-3 text-sm text-zinc-300">
                 <input
                   type="checkbox"
                   checked={editingProduct.is_active}
                   onChange={(event) =>
                     setEditingProduct((current) =>
-                      current ? { ...current, is_active: event.target.checked } : current,
+                      current
+                        ? { ...current, is_active: event.target.checked }
+                        : current,
                     )
                   }
                 />
                 Produto ativo
               </label>
 
-              <label className="flex items-center gap-2 text-sm text-zinc-300">
+              <label className="flex items-center gap-3 text-sm text-zinc-300">
                 <input
                   type="checkbox"
                   checked={editingProduct.is_featured}
@@ -358,17 +371,23 @@ export function ProductList({ products, categories = [], onUpdated }: ProductLis
               </label>
             </div>
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+            <div className="mt-4 space-y-3">
+              <Button
+                type="submit"
+                disabled={savingProductId === editingProduct.id}
+                className="min-h-12 w-full rounded-2xl text-sm font-black"
+              >
+                {savingProductId === editingProduct.id
+                  ? "Salvando..."
+                  : "Salvar alterações"}
+              </Button>
+
               <Button
                 type="button"
                 onClick={() => setEditingProduct(null)}
-                className="border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
+                className="min-h-12 w-full rounded-2xl border border-white/10 bg-transparent text-sm font-black text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
               >
                 Cancelar
-              </Button>
-
-              <Button type="submit" disabled={savingProductId === editingProduct.id}>
-                {savingProductId === editingProduct.id ? "Salvando..." : "Salvar alterações"}
               </Button>
             </div>
           </form>

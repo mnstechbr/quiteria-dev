@@ -112,16 +112,16 @@ export function ManagerSettingsForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <Card>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">Restaurante</h2>
+        <div className="mb-4">
+          <h2 className="text-lg font-black">Restaurante</h2>
           <p className="mt-1 text-sm text-zinc-400">
             Informações principais exibidas no sistema e no cardápio.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm text-zinc-300">
               Nome do restaurante
@@ -171,14 +171,14 @@ export function ManagerSettingsForm({
       </Card>
 
       <Card>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">Aparência</h2>
+        <div className="mb-4">
+          <h2 className="text-lg font-black">Aparência</h2>
           <p className="mt-1 text-sm text-zinc-400">
             Cores usadas para personalizar a experiência do restaurante.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm text-zinc-300">
               Cor principal
@@ -193,7 +193,7 @@ export function ManagerSettingsForm({
               <input
                 value={primaryColor}
                 onChange={(event) => setPrimaryColor(event.target.value)}
-                className="flex-1 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
               />
             </div>
           </label>
@@ -212,7 +212,7 @@ export function ManagerSettingsForm({
               <input
                 value={secondaryColor}
                 onChange={(event) => setSecondaryColor(event.target.value)}
-                className="flex-1 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
               />
             </div>
           </label>
@@ -220,14 +220,14 @@ export function ManagerSettingsForm({
       </Card>
 
       <Card>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">Operação</h2>
+        <div className="mb-4">
+          <h2 className="text-lg font-black">Operação</h2>
           <p className="mt-1 text-sm text-zinc-400">
             Regras operacionais do restaurante.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm text-zinc-300">
               Taxa padrão do garçom (%)
@@ -283,8 +283,8 @@ export function ManagerSettingsForm({
 
       {message && <p className="text-sm text-zinc-300">{message}</p>}
 
-      <div className="flex justify-end">
-        <Button type="submit" disabled={saving}>
+      <div className="">
+        <Button type="submit" disabled={saving} className="min-h-12 w-full rounded-2xl text-sm font-black">
           {saving ? "Salvando..." : "Salvar configurações"}
         </Button>
       </div>

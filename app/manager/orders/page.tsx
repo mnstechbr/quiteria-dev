@@ -1,10 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  ManagerMobileShell,
+  MobileMetricCard,
+  MobileSectionCard,
+} from "@/components/manager/ManagerMobileShell";
 import { PendingOrdersList } from "@/components/manager/PendingOrdersList";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
@@ -108,9 +111,23 @@ export default function ManagerOrdersPage() {
       );
       setMessage("Pedido aprovado e enviado para produção.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao aprovar pedido.");
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao aprovar pedido.",
+      );
     } finally {
       setApprovingOrderId(null);
+    }
+  }
+
+  async function handleRefresh() {
+    try {
+      setMessage(null);
+      await loadPendingOrders();
+      setMessage("Pedidos atualizados.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao atualizar pedidos.",
+      );
     }
   }
 
@@ -121,7 +138,7 @@ export default function ManagerOrdersPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
         Carregando pedidos...
       </main>
     );
@@ -130,57 +147,45 @@ export default function ManagerOrdersPage() {
   if (!allowed) return null;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-zinc-950 px-3 py-4 pb-24 text-white sm:p-8">
-      <section className="mx-auto w-full max-w-6xl space-y-4 sm:space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <Link href="/manager" className="text-xs font-medium text-orange-400 hover:text-orange-300">
-              ← Voltar ao painel
-            </Link>
-            <h1 className="mt-2 text-3xl font-bold">Pedidos</h1>
-            <p className="mt-1 text-sm text-zinc-400">
-              Aprove pedidos antes de enviar para cozinha ou bar.
-            </p>
-          </div>
+    <ManagerMobileShell
+      title="Pedidos"
+      description="Aprove pedidos antes de enviar para cozinha ou bar."
+      activeHref="/manager/orders"
+      onLogout={handleLogout}
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <MobileMetricCard label="Aguardando" value={orders.length} />
+        <MobileMetricCard
+          label="Itens"
+          value={orders.reduce((total, order) => total + order.items.length, 0)}
+        />
+      </div>
 
+      <MobileSectionCard
+        title="Aguardando aprovação"
+        description="Cards verticais para aprovação rápida no celular."
+        action={
           <Button
             type="button"
-            onClick={handleLogout}
-            className="w-full border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white sm:w-auto"
+            onClick={handleRefresh}
+            className="px-3 py-2 text-xs"
           >
-            Sair
+            Atualizar
           </Button>
-        </div>
+        }
+      >
+        {message && (
+          <p className="mb-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-zinc-300">
+            {message}
+          </p>
+        )}
 
-        <Card>
-          <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold sm:text-xl">
-                Aguardando aprovação
-              </h2>
-              <p className="mt-1 text-sm text-zinc-400">
-                Lista isolada para não poluir o painel principal no celular.
-              </p>
-            </div>
-
-            <Button
-              type="button"
-              onClick={() => loadPendingOrders().catch(() => null)}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 sm:w-auto"
-            >
-              Atualizar
-            </Button>
-          </div>
-
-          {message && <p className="mb-4 text-sm text-zinc-300">{message}</p>}
-
-          <PendingOrdersList
-            orders={orders}
-            approvingOrderId={approvingOrderId}
-            onApproveOrder={handleApproveOrder}
-          />
-        </Card>
-      </section>
-    </main>
+        <PendingOrdersList
+          orders={orders}
+          approvingOrderId={approvingOrderId}
+          onApproveOrder={handleApproveOrder}
+        />
+      </MobileSectionCard>
+    </ManagerMobileShell>
   );
 }
