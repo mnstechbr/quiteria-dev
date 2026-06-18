@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type PublicMenuProduct = {
   id: string;
@@ -58,6 +58,27 @@ type PublicMenuProps = {
   settings?: PublicMenuSettings | null;
 };
 
+const STATUS_COPY: Record<
+  string,
+  {
+    title: string;
+    description: string;
+  }
+> = {
+  PENDING_APPROVAL: {
+    title: "Aguardando liberação",
+    description: "Você já pode montar o pedido. A equipe confirma a mesa antes do preparo.",
+  },
+  OPEN: {
+    title: "Mesa liberada",
+    description: "Escolha os itens e envie seu pedido para a equipe.",
+  },
+  BILL_REQUESTED: {
+    title: "Conta solicitada",
+    description: "A conta já foi pedida. Aguarde a equipe ir até a mesa.",
+  },
+};
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -65,20 +86,13 @@ function formatCurrency(value: number) {
   }).format(Number(value));
 }
 
-function getSessionMessage(status: string) {
-  if (status === "PENDING_APPROVAL") {
-    return "Mesa aguardando confirmação. Você já pode escolher seus produtos.";
-  }
-
-  if (status === "OPEN") {
-    return "Mesa liberada. Seus pedidos serão enviados para a equipe.";
-  }
-
-  if (status === "BILL_REQUESTED") {
-    return "A conta foi solicitada. Aguarde a equipe ir até a mesa.";
-  }
-
-  return "Bem-vindo ao cardápio digital.";
+function getSessionCopy(status: string) {
+  return (
+    STATUS_COPY[status] ?? {
+      title: "Cardápio digital",
+      description: "Escolha os itens e envie seu pedido para a equipe.",
+    }
+  );
 }
 
 function getContrastColor(hexColor: string) {
@@ -96,7 +110,14 @@ function getContrastColor(hexColor: string) {
 
 function safeColor(color: string | null | undefined, fallback: string) {
   if (!color) return fallback;
-  return color.startsWith("#") ? color : fallback;
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
+}
+
+function normalizeText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 export function PublicMenu({
@@ -107,6 +128,8 @@ export function PublicMenu({
   settings,
 }: PublicMenuProps) {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [activeCategoryId, setActiveCategoryId] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] =
     useState<PublicMenuProduct | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<{
@@ -116,10 +139,13 @@ export function PublicMenu({
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const messageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const primaryColor = safeColor(settings?.primary_color, "#f97316");
   const secondaryColor = safeColor(settings?.secondary_color, "#111827");
   const primaryTextColor = getContrastColor(primaryColor);
+  const sessionCopy = getSessionCopy(session.status);
+  const orderBlocked = session.status === "BILL_REQUESTED";
 
   const categoriesWithProducts = useMemo(
     () =>
@@ -132,6 +158,37 @@ export function PublicMenu({
     [categories],
   );
 
+  const featuredProducts = useMemo(
+    () =>
+      categoriesWithProducts
+        .flatMap((category) => category.products)
+        .filter((product) => product.is_featured)
+        .slice(0, 6),
+    [categoriesWithProducts],
+  );
+
+  const visibleCategories = useMemo(() => {
+    const normalizedSearch = normalizeText(searchTerm.trim());
+
+    return categoriesWithProducts
+      .filter(
+        (category) => activeCategoryId === "all" || category.id === activeCategoryId,
+      )
+      .map((category) => ({
+        ...category,
+        products: category.products.filter((product) => {
+          if (!normalizedSearch) return true;
+
+          const searchableText = normalizeText(
+            `${product.name} ${product.description ?? ""}`,
+          );
+
+          return searchableText.includes(normalizedSearch);
+        }),
+      }))
+      .filter((category) => category.products.length > 0);
+  }, [activeCategoryId, categoriesWithProducts, searchTerm]);
+
   const cartTotal = cart.reduce(
     (total, item) => total + Number(item.product.price) * item.quantity,
     0,
@@ -139,9 +196,33 @@ export function PublicMenu({
 
   const cartQuantity = cart.reduce((total, item) => total + item.quantity, 0);
 
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function showMessage(nextMessage: string) {
+    setMessage(nextMessage);
+
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+
+    messageTimeoutRef.current = setTimeout(() => {
+      setMessage(null);
+    }, 4200);
+  }
+
   function addProduct(product: PublicMenuProduct) {
+    if (orderBlocked) {
+      showMessage("A conta já foi solicitada para esta mesa.");
+      return;
+    }
+
     setMessage(null);
-    setCartOpen(true);
     setCart((currentCart) => {
       const existingItem = currentCart.find(
         (item) => item.product.id === product.id,
@@ -171,6 +252,10 @@ export function PublicMenu({
     });
   }
 
+  function getProductQuantity(productId: string) {
+    return cart.find((item) => item.product.id === productId)?.quantity ?? 0;
+  }
+
   async function submitOrder() {
     try {
       setSubmitting(true);
@@ -178,6 +263,10 @@ export function PublicMenu({
 
       if (cart.length === 0) {
         throw new Error("Adicione pelo menos um produto ao carrinho.");
+      }
+
+      if (orderBlocked) {
+        throw new Error("A conta já foi solicitada para esta mesa.");
       }
 
       const response = await fetch("/api/public/orders", {
@@ -203,38 +292,22 @@ export function PublicMenu({
       setCart([]);
       setCartOpen(false);
       setSelectedProduct(null);
-      setMessage("Pedido enviado com sucesso. Aguarde a confirmação da equipe.");
+      showMessage("Pedido enviado com sucesso. Aguarde a confirmação da equipe.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Erro ao enviar pedido.");
+      showMessage(error instanceof Error ? error.message : "Erro ao enviar pedido.");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <style jsx global>{`
-        @keyframes quiteriaSlowZoom {
-          0%, 100% {
-            transform: scale(1) translate3d(0, 0, 0);
-          }
-          50% {
-            transform: scale(1.035) translate3d(0, -6px, 0);
-          }
-        }
-
-        .quiteria-fullscreen-image {
-          animation: quiteriaSlowZoom 8s ease-in-out infinite;
-          will-change: transform;
-        }
-      `}</style>
-
-      <section className="mx-auto min-h-screen max-w-md bg-zinc-950 pb-24 shadow-2xl shadow-black/40">
+    <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-white">
+      <section className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-zinc-950 pb-[calc(104px+env(safe-area-inset-bottom))] shadow-2xl shadow-black/40">
         <header
-          className="border-b border-white/10 bg-zinc-950"
+          className="shrink-0 overflow-hidden border-b border-white/10 bg-zinc-950"
           style={{ borderColor: `${primaryColor}33` }}
         >
-          {settings?.banner_url && (
+          {settings?.banner_url ? (
             <button
               type="button"
               onClick={() =>
@@ -243,7 +316,7 @@ export function PublicMenu({
                   title: restaurant.name,
                 })
               }
-              className="block h-[118px] w-full overflow-hidden bg-zinc-900"
+              className="block h-28 w-full overflow-hidden bg-zinc-900"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -252,15 +325,22 @@ export function PublicMenu({
                 className="h-full w-full object-cover"
               />
             </button>
+          ) : (
+            <div
+              className="h-16 w-full"
+              style={{
+                background: `linear-gradient(135deg, ${secondaryColor}, ${primaryColor}44)`,
+              }}
+            />
           )}
 
           <div
             className="px-4 py-3"
             style={{
-              background: `linear-gradient(135deg, ${secondaryColor}ee, #09090bcc)`,
+              background: `linear-gradient(135deg, ${secondaryColor}f2, #09090bf2)`,
             }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               {settings?.logo_url ? (
                 <button
                   type="button"
@@ -270,7 +350,7 @@ export function PublicMenu({
                       title: restaurant.name,
                     })
                   }
-                  className="h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-900"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-zinc-900"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -280,237 +360,439 @@ export function PublicMenu({
                   />
                 </button>
               ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-zinc-900 text-lg font-bold">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-zinc-900 text-lg font-black">
                   {restaurant.name.slice(0, 1).toUpperCase()}
                 </div>
               )}
 
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold" style={{ color: primaryColor }}>
+                <p
+                  className="text-[11px] font-black uppercase tracking-[0.2em]"
+                  style={{ color: primaryColor }}
+                >
                   Cardápio digital
                 </p>
-                <h1 className="truncate text-lg font-bold tracking-tight">
+                <h1 className="break-words text-xl font-black leading-tight tracking-tight">
                   {restaurant.name}
                 </h1>
-                <p className="text-xs text-zinc-300">{table.name}</p>
+                <p className="mt-0.5 text-sm font-semibold text-zinc-300">
+                  {table.name}
+                </p>
               </div>
             </div>
 
-            <div className="mt-3 rounded-2xl border border-white/10 bg-black/25 px-3 py-2 text-xs text-zinc-300">
-              {getSessionMessage(session.status)}
+            <div className="mt-3 rounded-3xl border border-white/10 bg-black/25 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-bold text-zinc-100">{sessionCopy.title}</p>
+                <span
+                  className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide"
+                  style={{ background: `${primaryColor}22`, color: primaryColor }}
+                >
+                  {cartQuantity} itens
+                </span>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                {sessionCopy.description}
+              </p>
             </div>
           </div>
         </header>
 
-        <nav className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 px-3 py-2 backdrop-blur">
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {categoriesWithProducts.map((category) => (
-              <a
-                key={category.id}
-                href={`#category-${category.id}`}
-                className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-200"
-              >
-                {category.name}
-              </a>
-            ))}
-          </div>
-        </nav>
+        <div className="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/95 px-3 py-3 backdrop-blur-xl">
+          <label className="block">
+            <span className="sr-only">Buscar produto</span>
+            <input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar no cardápio"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white outline-none placeholder:text-zinc-500 focus:border-white/25"
+            />
+          </label>
 
-        <div className="space-y-5 px-3 py-4">
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <button
+              type="button"
+              onClick={() => setActiveCategoryId("all")}
+              className="shrink-0 rounded-full border px-3 py-2 text-xs font-black transition"
+              style={
+                activeCategoryId === "all"
+                  ? {
+                      background: primaryColor,
+                      color: primaryTextColor,
+                      borderColor: primaryColor,
+                    }
+                  : undefined
+              }
+            >
+              Tudo
+            </button>
+
+            {categoriesWithProducts.map((category) => {
+              const isActive = activeCategoryId === category.id;
+
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => setActiveCategoryId(category.id)}
+                  className="shrink-0 rounded-full border px-3 py-2 text-xs font-black transition"
+                  style={
+                    isActive
+                      ? {
+                          background: primaryColor,
+                          color: primaryTextColor,
+                          borderColor: primaryColor,
+                        }
+                      : undefined
+                  }
+                >
+                  {category.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex-1 space-y-5 px-3 py-4">
+          {featuredProducts.length > 0 && activeCategoryId === "all" && !searchTerm && (
+            <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-3">
+              <div className="mb-3 flex items-center justify-between px-1">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Sugestões
+                  </p>
+                  <h2 className="text-base font-black text-white">Destaques da casa</h2>
+                </div>
+                <span className="text-[11px] font-semibold text-zinc-500">
+                  {featuredProducts.length} itens
+                </span>
+              </div>
+
+              <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {featuredProducts.map((product) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onClick={() => setSelectedProduct(product)}
+                    className="w-36 shrink-0 overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 text-left"
+                  >
+                    <div className="h-24 w-full bg-zinc-800">
+                      {product.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[11px] text-zinc-600">
+                          Sem foto
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="line-clamp-2 text-sm font-black leading-tight text-white">
+                        {product.name}
+                      </p>
+                      <p className="mt-2 text-sm font-black" style={{ color: primaryColor }}>
+                        {formatCurrency(product.price)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
           {categoriesWithProducts.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center text-sm text-zinc-400">
-              Nenhum produto disponível no momento.
+            <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">
+              <p className="text-base font-black text-white">Cardápio indisponível</p>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Nenhum produto ativo foi encontrado no momento.
+              </p>
+            </div>
+          ) : visibleCategories.length === 0 ? (
+            <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">
+              <p className="text-base font-black text-white">Nada encontrado</p>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                Tente buscar por outro nome ou selecione outra categoria.
+              </p>
             </div>
           ) : (
-            categoriesWithProducts.map((category) => (
-              <section
-                key={category.id}
-                id={`category-${category.id}`}
-                className="scroll-mt-16"
-              >
-                <div className="mb-2 flex items-center justify-between px-1">
-                  <h2 className="text-base font-bold">{category.name}</h2>
-                  <span className="text-[11px] text-zinc-500">
+            visibleCategories.map((category) => (
+              <section key={category.id} className="scroll-mt-32">
+                <div className="mb-3 flex items-end justify-between gap-3 px-1">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                      Categoria
+                    </p>
+                    <h2 className="break-words text-lg font-black text-white">
+                      {category.name}
+                    </h2>
+                  </div>
+                  <span className="shrink-0 text-[11px] font-semibold text-zinc-500">
                     {category.products.length} itens
                   </span>
                 </div>
 
-                <div className="space-y-2">
-                  {category.products.map((product) => (
-                    <article
-                      key={product.id}
-                      className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-2.5"
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          product.image_url
-                            ? setFullscreenImage({
-                                url: product.image_url,
-                                title: product.name,
-                              })
-                            : setSelectedProduct(product)
-                        }
-                        className="h-[64px] w-[64px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-900"
-                      >
-                        {product.image_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[11px] text-zinc-600">
-                            Foto
-                          </div>
-                        )}
-                      </button>
+                <div className="space-y-3">
+                  {category.products.map((product) => {
+                    const quantity = getProductQuantity(product.id);
 
-                      <button
-                        type="button"
-                        onClick={() => setSelectedProduct(product)}
-                        className="min-w-0 flex-1 text-left"
+                    return (
+                      <article
+                        key={product.id}
+                        className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.04]"
                       >
-                        <div className="flex items-center gap-2">
-                          <h3 className="truncate text-sm font-semibold">
-                            {product.name}
-                          </h3>
-                          {product.is_featured && (
-                            <span
-                              className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                              style={{
-                                background: `${primaryColor}22`,
-                                color: primaryColor,
-                              }}
+                        <div className="flex gap-3 p-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              product.image_url
+                                ? setFullscreenImage({
+                                    url: product.image_url,
+                                    title: product.name,
+                                  })
+                                : setSelectedProduct(product)
+                            }
+                            className="h-24 w-24 shrink-0 overflow-hidden rounded-3xl border border-white/10 bg-zinc-900"
+                          >
+                            {product.image_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={product.image_url}
+                                alt={product.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-[11px] text-zinc-600">
+                                Sem foto
+                              </div>
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedProduct(product)}
+                            className="min-w-0 flex-1 text-left"
+                          >
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <h3 className="break-words text-base font-black leading-tight text-white">
+                                {product.name}
+                              </h3>
+                              {product.is_featured && (
+                                <span
+                                  className="rounded-full px-2 py-0.5 text-[10px] font-black uppercase"
+                                  style={{
+                                    background: `${primaryColor}22`,
+                                    color: primaryColor,
+                                  }}
+                                >
+                                  Destaque
+                                </span>
+                              )}
+                            </div>
+
+                            {product.description && (
+                              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-500">
+                                {product.description}
+                              </p>
+                            )}
+
+                            <p
+                              className="mt-2 text-base font-black"
+                              style={{ color: primaryColor }}
                             >
-                              Destaque
-                            </span>
-                          )}
+                              {formatCurrency(product.price)}
+                            </p>
+                          </button>
                         </div>
 
-                        {product.description && (
-                          <p className="mt-0.5 line-clamp-1 text-[11px] leading-relaxed text-zinc-500">
-                            {product.description}
-                          </p>
-                        )}
+                        <div className="flex items-center justify-between gap-3 border-t border-white/10 px-3 py-2.5">
+                          <span className="text-xs font-semibold text-zinc-500">
+                            {quantity > 0 ? `${quantity} no carrinho` : "Adicionar ao pedido"}
+                          </span>
 
-                        <p className="mt-1 text-sm font-bold" style={{ color: primaryColor }}>
-                          {formatCurrency(product.price)}
-                        </p>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => addProduct(product)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg font-bold"
-                        style={{
-                          background: primaryColor,
-                          color: primaryTextColor,
-                        }}
-                        aria-label={`Adicionar ${product.name}`}
-                      >
-                        +
-                      </button>
-                    </article>
-                  ))}
+                          {quantity > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => changeQuantity(product.id, quantity - 1)}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-lg font-black text-zinc-200"
+                              >
+                                -
+                              </button>
+                              <span className="w-7 text-center text-sm font-black text-white">
+                                {quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => addProduct(product)}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl text-lg font-black"
+                                style={{ background: primaryColor, color: primaryTextColor }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => addProduct(product)}
+                              disabled={orderBlocked}
+                              className="rounded-2xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+                              style={{ background: primaryColor, color: primaryTextColor }}
+                            >
+                              Adicionar
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             ))
           )}
         </div>
-
-        {message && (
-          <div className="fixed bottom-20 left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900 p-3 text-sm text-zinc-200 shadow-2xl">
-            {message}
-          </div>
-        )}
-
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-zinc-950/95 p-3 backdrop-blur">
-          <div className="mx-auto max-w-md">
-            <button
-              type="button"
-              onClick={() => setCartOpen((current) => !current)}
-              className="flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left shadow-2xl disabled:opacity-60"
-              style={{
-                background: cart.length > 0 ? primaryColor : "#18181b",
-                color: cart.length > 0 ? primaryTextColor : "#a1a1aa",
-              }}
-            >
-              <span className="text-sm font-bold">
-                {cart.length > 0
-                  ? `${cartQuantity} ${cartQuantity === 1 ? "item" : "itens"}`
-                  : "Carrinho vazio"}
-              </span>
-              <span className="text-sm font-extrabold">
-                {formatCurrency(cartTotal)}
-              </span>
-            </button>
-          </div>
-        </div>
       </section>
 
-      {cartOpen && cart.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/60">
-          <div className="mx-auto max-h-[78vh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-white/10 bg-zinc-950 p-4 text-white shadow-2xl">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold">Seu carrinho</h2>
-                <p className="text-sm text-zinc-400">
-                  {cartQuantity} {cartQuantity === 1 ? "item" : "itens"} no pedido
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCartOpen(false)}
-                className="rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-300"
-              >
-                Fechar
-              </button>
-            </div>
+      {message && (
+        <div className="fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-50 px-3">
+          <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-zinc-900 p-3 text-sm font-semibold leading-relaxed text-zinc-100 shadow-2xl shadow-black/50">
+            {message}
+          </div>
+        </div>
+      )}
 
-            <div className="space-y-3">
-              {cart.map((item) => (
-                <div
-                  key={item.product.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-zinc-100">
-                      {item.product.name}
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      {formatCurrency(Number(item.product.price) * item.quantity)}
-                    </p>
-                  </div>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-zinc-950/95 px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl">
+        <div className="mx-auto max-w-md">
+          <button
+            type="button"
+            onClick={() => setCartOpen(true)}
+            disabled={cart.length === 0}
+            className="flex w-full items-center justify-between gap-3 rounded-3xl px-4 py-3 text-left shadow-2xl disabled:cursor-not-allowed disabled:opacity-70"
+            style={{
+              background: cart.length > 0 ? primaryColor : "#18181b",
+              color: cart.length > 0 ? primaryTextColor : "#a1a1aa",
+            }}
+          >
+            <span className="min-w-0">
+              <span className="block text-sm font-black">
+                {cart.length > 0
+                  ? `Ver carrinho (${cartQuantity})`
+                  : orderBlocked
+                    ? "Conta solicitada"
+                    : "Carrinho vazio"}
+              </span>
+              <span className="block text-xs font-semibold opacity-80">
+                {cart.length > 0
+                  ? "Conferir e enviar pedido"
+                  : orderBlocked
+                    ? "Aguarde a equipe"
+                    : "Adicione itens ao pedido"}
+              </span>
+            </span>
+            <span className="shrink-0 text-base font-black">
+              {formatCurrency(cartTotal)}
+            </span>
+          </button>
+        </div>
+      </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(item.product.id, item.quantity - 1)}
-                      className="h-8 w-8 rounded-lg border border-white/10 text-zinc-300"
-                    >
-                      -
-                    </button>
-                    <span className="w-6 text-center text-sm font-semibold">
-                      {item.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => changeQuantity(item.product.id, item.quantity + 1)}
-                      className="h-8 w-8 rounded-lg border border-white/10 text-zinc-300"
-                    >
-                      +
-                    </button>
-                  </div>
+      {cartOpen && (
+        <div className="fixed inset-0 z-50 flex items-end bg-black/70 px-0 pt-16 backdrop-blur-sm">
+          <div className="mx-auto flex max-h-[86dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-zinc-950 text-white shadow-2xl">
+            <div className="shrink-0 border-b border-white/10 p-4">
+              <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20" />
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    Conferência
+                  </p>
+                  <h2 className="text-xl font-black">Seu carrinho</h2>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    {cartQuantity} {cartQuantity === 1 ? "item" : "itens"} no pedido
+                  </p>
                 </div>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setCartOpen(false)}
+                  className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-zinc-300"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <div className="flex items-center justify-between text-sm text-zinc-300">
-                <span>Total</span>
-                <span className="text-xl font-extrabold text-white">
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              {cart.length === 0 ? (
+                <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">
+                  <p className="text-base font-black text-white">Carrinho vazio</p>
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                    Escolha os produtos no cardápio para montar o pedido.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {cart.map((item) => (
+                    <div
+                      key={item.product.id}
+                      className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words text-sm font-black text-zinc-100">
+                            {item.product.name}
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-zinc-500">
+                            {formatCurrency(item.product.price)} cada
+                          </p>
+                        </div>
+                        <p className="shrink-0 text-sm font-black text-white">
+                          {formatCurrency(Number(item.product.price) * item.quantity)}
+                        </p>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => changeQuantity(item.product.id, 0)}
+                          className="text-xs font-black text-zinc-500 underline underline-offset-4"
+                        >
+                          Remover
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => changeQuantity(item.product.id, item.quantity - 1)}
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-lg font-black text-zinc-200"
+                          >
+                            -
+                          </button>
+                          <span className="w-8 text-center text-sm font-black text-white">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => changeQuantity(item.product.id, item.quantity + 1)}
+                            className="flex h-10 w-10 items-center justify-center rounded-xl text-lg font-black"
+                            style={{ background: primaryColor, color: primaryTextColor }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="shrink-0 border-t border-white/10 p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+              <div className="mb-3 flex items-center justify-between text-sm font-semibold text-zinc-300">
+                <span>Total do pedido</span>
+                <span className="text-2xl font-black text-white">
                   {formatCurrency(cartTotal)}
                 </span>
               </div>
@@ -518,14 +800,15 @@ export function PublicMenu({
               <button
                 type="button"
                 onClick={submitOrder}
-                disabled={submitting}
-                className="mt-4 w-full rounded-2xl px-4 py-3 text-sm font-bold disabled:opacity-60"
-                style={{
-                  background: primaryColor,
-                  color: primaryTextColor,
-                }}
+                disabled={submitting || cart.length === 0 || orderBlocked}
+                className="w-full rounded-3xl px-4 py-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: primaryColor, color: primaryTextColor }}
               >
-                {submitting ? "Enviando..." : "Enviar pedido"}
+                {submitting
+                  ? "Enviando..."
+                  : orderBlocked
+                    ? "Conta já solicitada"
+                    : "Enviar pedido"}
               </button>
             </div>
           </div>
@@ -533,77 +816,88 @@ export function PublicMenu({
       )}
 
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950 text-white">
-          <div className="mx-auto min-h-screen max-w-md pb-28">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-zinc-950/90 p-3 backdrop-blur">
-              <button
-                type="button"
-                onClick={() => setSelectedProduct(null)}
-                className="rounded-xl border border-white/10 px-3 py-2 text-sm font-semibold text-zinc-200"
-              >
-                Voltar
-              </button>
+        <div className="fixed inset-0 z-50 flex items-end bg-black/70 px-0 pt-16 backdrop-blur-sm">
+          <div className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-zinc-950 text-white shadow-2xl">
+            <div className="shrink-0 border-b border-white/10 p-3">
+              <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProduct(null)}
+                  className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-zinc-300"
+                >
+                  Fechar
+                </button>
 
-              <button
-                type="button"
-                onClick={() => addProduct(selectedProduct)}
-                className="rounded-xl px-3 py-2 text-sm font-bold"
-                style={{ background: primaryColor, color: primaryTextColor }}
-              >
-                Adicionar
-              </button>
+                <button
+                  type="button"
+                  onClick={() => addProduct(selectedProduct)}
+                  disabled={orderBlocked}
+                  className="rounded-2xl px-4 py-2 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
+                  style={{ background: primaryColor, color: primaryTextColor }}
+                >
+                  Adicionar
+                </button>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                selectedProduct.image_url
-                  ? setFullscreenImage({
-                      url: selectedProduct.image_url,
-                      title: selectedProduct.name,
-                    })
-                  : undefined
-              }
-              className="block h-72 w-full overflow-hidden bg-zinc-900"
-            >
-              {selectedProduct.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={selectedProduct.image_url}
-                  alt={selectedProduct.name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-zinc-600">
-                  Sem foto
-                </div>
-              )}
-            </button>
+            <div className="flex-1 overflow-y-auto">
+              <button
+                type="button"
+                onClick={() =>
+                  selectedProduct.image_url
+                    ? setFullscreenImage({
+                        url: selectedProduct.image_url,
+                        title: selectedProduct.name,
+                      })
+                    : undefined
+                }
+                className="block h-72 w-full overflow-hidden bg-zinc-900"
+              >
+                {selectedProduct.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={selectedProduct.image_url}
+                    alt={selectedProduct.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-zinc-600">
+                    Sem foto
+                  </div>
+                )}
+              </button>
 
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <h2 className="text-2xl font-bold">{selectedProduct.name}</h2>
-                  <p className="mt-2 text-2xl font-extrabold" style={{ color: primaryColor }}>
-                    {formatCurrency(selectedProduct.price)}
+              <div className="p-4 pb-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="break-words text-2xl font-black leading-tight">
+                      {selectedProduct.name}
+                    </h2>
+                    <p
+                      className="mt-2 text-2xl font-black"
+                      style={{ color: primaryColor }}
+                    >
+                      {formatCurrency(selectedProduct.price)}
+                    </p>
+                  </div>
+
+                  {selectedProduct.is_featured && (
+                    <span
+                      className="shrink-0 rounded-full px-3 py-1 text-xs font-black uppercase"
+                      style={{ background: `${primaryColor}22`, color: primaryColor }}
+                    >
+                      Destaque
+                    </span>
+                  )}
+                </div>
+
+                {selectedProduct.description && (
+                  <p className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 text-sm leading-relaxed text-zinc-300">
+                    {selectedProduct.description}
                   </p>
-                </div>
-
-                {selectedProduct.is_featured && (
-                  <span
-                    className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{ background: `${primaryColor}22`, color: primaryColor }}
-                  >
-                    Destaque
-                  </span>
                 )}
               </div>
-
-              {selectedProduct.description && (
-                <p className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-relaxed text-zinc-300">
-                  {selectedProduct.description}
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -614,7 +908,7 @@ export function PublicMenu({
           <button
             type="button"
             onClick={() => setFullscreenImage(null)}
-            className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur"
+            className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur"
           >
             Fechar
           </button>
@@ -624,7 +918,7 @@ export function PublicMenu({
             <img
               src={fullscreenImage.url}
               alt={fullscreenImage.title}
-              className="quiteria-fullscreen-image max-h-[82vh] w-full object-contain"
+              className="max-h-[82dvh] w-full object-contain"
             />
           </div>
         </div>
