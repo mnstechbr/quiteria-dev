@@ -6,7 +6,7 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(value);
+  }).format(Number(value ?? 0));
 }
 
 type ReadyOrdersListProps = {
@@ -22,7 +22,7 @@ export function ReadyOrdersList({
 }: ReadyOrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center">
+      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
         <p className="text-sm text-zinc-400">
           Nenhum pedido pronto para entrega.
         </p>
@@ -31,15 +31,15 @@ export function ReadyOrdersList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {orders.map((order) => (
-        <div
+        <article
           key={order.id}
-          className="rounded-2xl border border-emerald-300/40 bg-emerald-300/10 p-4 shadow-[0_0_18px_rgba(110,231,183,0.10)]"
+          className="w-full overflow-hidden rounded-3xl border border-emerald-300/40 bg-emerald-300/10 p-4 shadow-[0_0_18px_rgba(110,231,183,0.10)]"
         >
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p className="text-sm font-medium text-emerald-200">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-lg font-black text-emerald-200">
                 {order.table_name}
               </p>
 
@@ -48,7 +48,7 @@ export function ReadyOrdersList({
               </p>
             </div>
 
-            <p className="text-sm font-semibold text-white">
+            <p className="shrink-0 text-right text-sm font-bold text-white">
               {formatCurrency(order.total_amount)}
             </p>
           </div>
@@ -57,21 +57,21 @@ export function ReadyOrdersList({
             {order.items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-white/10 bg-zinc-950/60 p-3"
+                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/60 p-3"
               >
-                <div>
-                  <p className="text-sm font-medium text-white">
+                <div className="min-w-0 flex-1">
+                  <p className="break-words text-sm font-medium text-white">
                     {item.quantity}x {item.product_name}
                   </p>
 
                   {item.notes && (
-                    <p className="mt-1 text-xs text-zinc-400">
-                      {item.notes}
+                    <p className="mt-1 break-words text-xs text-zinc-400">
+                      Obs: {item.notes}
                     </p>
                   )}
                 </div>
 
-                <span className="rounded-full border border-emerald-300/30 px-3 py-1 text-xs text-emerald-200">
+                <span className="shrink-0 rounded-full border border-emerald-300/30 px-3 py-1 text-xs text-emerald-200">
                   Pronto
                 </span>
               </div>
@@ -82,13 +82,13 @@ export function ReadyOrdersList({
             type="button"
             disabled={deliveringOrderId === order.id}
             onClick={() => onMarkDelivered(order.id)}
-            className="mt-4 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-4 min-h-12 w-full rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-black text-zinc-950 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {deliveringOrderId === order.id
               ? "Marcando entrega..."
               : "Marcar como entregue"}
           </button>
-        </div>
+        </article>
       ))}
     </div>
   );

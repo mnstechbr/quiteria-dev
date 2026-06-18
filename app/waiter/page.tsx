@@ -1,22 +1,83 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PendingOrdersList } from "@/components/manager/PendingOrdersList";
 import { ReadyOrdersList } from "@/components/waiter/ReadyOrdersList";
 import { WaiterTableGrid } from "@/components/waiter/WaiterTableGrid";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
 import { supabase } from "@/lib/supabase/client";
 import { PendingOrder } from "@/types/order";
-import { TableWithStatus } from "@/types/table";
+import { TableOperationalStatus, TableWithStatus } from "@/types/table";
 
 const ALLOWED_WAITER_ROLES = ["MANAGER", "WAITER"];
+
+type WaiterTab = "summary" | "pending" | "ready" | "tables";
+type TableFilter = "ALL" | TableOperationalStatus;
+
+const WAITER_TABS: Array<{
+  id: WaiterTab;
+  label: string;
+  shortLabel: string;
+  icon: string;
+}> = [
+  { id: "summary", label: "Resumo", shortLabel: "Início", icon: "🏠" },
+  { id: "pending", label: "Aprovações", shortLabel: "Aprovar", icon: "✅" },
+  { id: "ready", label: "Entregas", shortLabel: "Prontos", icon: "🍽️" },
+  { id: "tables", label: "Mesas", shortLabel: "Mesas", icon: "🪑" },
+];
+
+const TABLE_FILTERS: Array<{
+  id: TableFilter;
+  label: string;
+  countKey?: keyof ReturnType<typeof createEmptyTableCounters>;
+}> = [
+  { id: "ALL", label: "Todas" },
+  { id: "PENDING_APPROVAL", label: "Aprovar", countKey: "pending" },
+  { id: "OPEN", label: "Atendimento", countKey: "open" },
+  { id: "BILL_REQUESTED", label: "Conta", countKey: "bill" },
+  { id: "AVAILABLE", label: "Livres", countKey: "available" },
+];
+
+const TABLE_STATUS_ORDER: Record<TableOperationalStatus, number> = {
+  BILL_REQUESTED: 0,
+  PENDING_APPROVAL: 1,
+  OPEN: 2,
+  AVAILABLE: 3,
+  CLOSED: 4,
+};
+
+function createEmptyTableCounters() {
+  return {
+    available: 0,
+    pending: 0,
+    open: 0,
+    bill: 0,
+  };
+}
+
+function getStatusCount(tables: TableWithStatus[], status: TableOperationalStatus) {
+  return tables.filter((table) => table.operational_status === status).length;
+}
+
+function sortTablesForMobile(tables: TableWithStatus[]) {
+  return [...tables].sort((a, b) => {
+    const statusDiff =
+      TABLE_STATUS_ORDER[a.operational_status] -
+      TABLE_STATUS_ORDER[b.operational_status];
+
+    if (statusDiff !== 0) return statusDiff;
+
+    return a.name.localeCompare(b.name, "pt-BR", { numeric: true });
+  });
+}
 
 export default function WaiterPage() {
   const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
+  const [activeTab, setActiveTab] = useState<WaiterTab>("summary");
+  const [tableFilter, setTableFilter] = useState<TableFilter>("ALL");
   const [userName, setUserName] = useState("");
   const [tables, setTables] = useState<TableWithStatus[]>([]);
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
@@ -26,9 +87,28 @@ export default function WaiterPage() {
   const [requestingBillTableId, setRequestingBillTableId] = useState<string | null>(null);
   const [approvingOrderId, setApprovingOrderId] = useState<string | null>(null);
   const [deliveringOrderId, setDeliveringOrderId] = useState<string | null>(null);
-  const [tableMessage, setTableMessage] = useState<string | null>(null);
-  const [orderMessage, setOrderMessage] = useState<string | null>(null);
-  const [deliveryMessage, setDeliveryMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const tableCounters = useMemo(
+    () => ({
+      available: getStatusCount(tables, "AVAILABLE"),
+      pending: getStatusCount(tables, "PENDING_APPROVAL"),
+      open: getStatusCount(tables, "OPEN"),
+      bill: getStatusCount(tables, "BILL_REQUESTED"),
+    }),
+    [tables],
+  );
+
+  const filteredTables = useMemo(() => {
+    const visibleTables =
+      tableFilter === "ALL"
+        ? tables
+        : tables.filter((table) => table.operational_status === tableFilter);
+
+    return sortTablesForMobile(visibleTables);
+  }, [tableFilter, tables]);
+
+  const activeTabLabel = WAITER_TABS.find((tab) => tab.id === activeTab)?.label;
 
   useEffect(() => {
     async function initializePage() {
@@ -55,11 +135,7 @@ export default function WaiterPage() {
         setUserName(session.profile?.full_name ?? session.user.email ?? "Garçom");
         setAllowed(true);
 
-        await Promise.all([
-          loadTables(),
-          loadPendingOrders(),
-          loadReadyOrders(),
-        ]);
+        await refreshAll();
       } catch {
         window.location.replace("/login");
       } finally {
@@ -69,6 +145,10 @@ export default function WaiterPage() {
 
     initializePage();
   }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
 
   async function getAccessToken() {
     const {
@@ -82,54 +162,44 @@ export default function WaiterPage() {
     return session.access_token;
   }
 
-  async function loadTables() {
+  async function fetchJson(path: string) {
     const accessToken = await getAccessToken();
 
-    const response = await fetch("/api/waiter/tables", {
+    const response = await fetch(path, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error("Erro ao carregar mesas.");
+      throw new Error(data.message ?? "Erro ao carregar dados.");
     }
 
-    const data = await response.json();
+    return data;
+  }
+
+  async function refreshAll() {
+    await Promise.allSettled([
+      loadTables(),
+      loadPendingOrders(),
+      loadReadyOrders(),
+    ]);
+  }
+
+  async function loadTables() {
+    const data = await fetchJson("/api/waiter/tables");
     setTables(data.tables ?? []);
   }
 
   async function loadPendingOrders() {
-    const accessToken = await getAccessToken();
-
-    const response = await fetch("/api/waiter/orders", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Erro ao carregar pedidos pendentes.");
-    }
-
-    const data = await response.json();
+    const data = await fetchJson("/api/waiter/orders");
     setPendingOrders(data.orders ?? []);
   }
 
   async function loadReadyOrders() {
-    const accessToken = await getAccessToken();
-
-    const response = await fetch("/api/waiter/orders?view=READY_FOR_DELIVERY", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error("Erro ao carregar pedidos prontos para entrega.");
-    }
-
-    const data = await response.json();
+    const data = await fetchJson("/api/waiter/orders?view=READY_FOR_DELIVERY");
     setReadyOrders(data.orders ?? []);
   }
 
@@ -146,7 +216,7 @@ export default function WaiterPage() {
   }) {
     try {
       loadingSetter(tableId);
-      setTableMessage(null);
+      setMessage(null);
 
       const accessToken = await getAccessToken();
 
@@ -182,9 +252,9 @@ export default function WaiterPage() {
         ),
       );
 
-      setTableMessage(successMessage);
+      setMessage(successMessage);
     } catch (error) {
-      setTableMessage(
+      setMessage(
         error instanceof Error
           ? error.message
           : "Erro ao atualizar mesa.",
@@ -197,7 +267,7 @@ export default function WaiterPage() {
   async function handleApproveOrder(orderId: string) {
     try {
       setApprovingOrderId(orderId);
-      setOrderMessage(null);
+      setMessage(null);
 
       const accessToken = await getAccessToken();
 
@@ -223,14 +293,14 @@ export default function WaiterPage() {
         currentOrders.filter((order) => order.id !== orderId),
       );
 
-      await Promise.all([
+      await Promise.allSettled([
         loadTables(),
         loadReadyOrders(),
       ]);
 
-      setOrderMessage("Pedido aprovado e enviado para produção.");
+      setMessage("Pedido aprovado e enviado para produção.");
     } catch (error) {
-      setOrderMessage(
+      setMessage(
         error instanceof Error
           ? error.message
           : "Erro ao aprovar pedido.",
@@ -243,7 +313,7 @@ export default function WaiterPage() {
   async function handleMarkDelivered(orderId: string) {
     try {
       setDeliveringOrderId(orderId);
-      setDeliveryMessage(null);
+      setMessage(null);
 
       const accessToken = await getAccessToken();
 
@@ -269,9 +339,9 @@ export default function WaiterPage() {
         currentOrders.filter((order) => order.id !== orderId),
       );
 
-      setDeliveryMessage("Pedido marcado como entregue.");
+      setMessage("Pedido marcado como entregue.");
     } catch (error) {
-      setDeliveryMessage(
+      setMessage(
         error instanceof Error
           ? error.message
           : "Erro ao marcar entrega.",
@@ -306,108 +376,280 @@ export default function WaiterPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
-        Carregando painel...
+      <main className="flex min-h-dvh items-center justify-center overflow-hidden bg-zinc-950 px-6 text-center text-sm text-zinc-300">
+        Carregando painel do garçom...
       </main>
     );
   }
 
-  if (!allowed) {
-    return null;
-  }
+  if (!allowed) return null;
 
   return (
-    <main className="min-h-screen bg-zinc-950 p-8 text-white">
-      <section className="mx-auto max-w-6xl space-y-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-orange-400">
-              Painel do Garçom
-            </p>
-
-            <h1 className="mt-2 text-4xl font-bold tracking-tight">
-              Quitéria
-            </h1>
-
-            <p className="mt-3 text-zinc-400">
-              Bem-vindo, {userName}.
-            </p>
-          </div>
-
-          <Button
-            type="button"
-            onClick={handleLogout}
-            className="border border-white/10 bg-transparent text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
-          >
-            Sair
-          </Button>
-        </div>
-
-        <Card>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">Pedidos aguardando aprovação</h2>
-            <p className="mt-1 text-sm text-zinc-400">
-              Aprove os pedidos dos clientes antes de enviar para produção.
-            </p>
-
-            {orderMessage && (
-              <p className="mt-3 text-sm text-zinc-300">
-                {orderMessage}
+    <main className="min-h-dvh w-full overflow-x-hidden bg-black text-white">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col overflow-x-hidden bg-zinc-950">
+        <header className="sticky top-0 z-40 shrink-0 border-b border-white/10 bg-zinc-950/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-400">
+                Painel do garçom
               </p>
-            )}
-          </div>
-
-          <PendingOrdersList
-            orders={pendingOrders}
-            approvingOrderId={approvingOrderId}
-            onApproveOrder={handleApproveOrder}
-          />
-        </Card>
-
-        <Card>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">Pedidos prontos para entrega</h2>
-            <p className="mt-1 text-sm text-zinc-400">
-              Marque como entregue quando levar o pedido para a mesa.
-            </p>
-
-            {deliveryMessage && (
-              <p className="mt-3 text-sm text-zinc-300">
-                {deliveryMessage}
+              <h1 className="mt-1 truncate text-2xl font-black leading-tight">
+                Quitéria
+              </h1>
+              <p className="mt-1 truncate text-xs text-zinc-400">
+                {activeTabLabel} • {userName}
               </p>
-            )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="shrink-0 rounded-2xl border border-white/10 px-3 py-2 text-xs font-semibold text-zinc-300 transition active:scale-95"
+            >
+              Sair
+            </button>
           </div>
 
-          <ReadyOrdersList
-            orders={readyOrders}
-            deliveringOrderId={deliveringOrderId}
-            onMarkDelivered={handleMarkDelivered}
-          />
-        </Card>
+          {message && (
+            <div className="mt-3 rounded-2xl border border-orange-400/30 bg-orange-400/10 px-3 py-2 text-xs leading-relaxed text-orange-100">
+              {message}
+            </div>
+          )}
+        </header>
 
-        <Card>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">Mesas</h2>
-            <p className="mt-1 text-sm text-zinc-400">
-              Acompanhe mesas aguardando aprovação, em atendimento e solicitando conta.
-            </p>
+        <section className="flex-1 space-y-4 px-4 py-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))]">
+          {activeTab === "summary" && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <SummaryCard label="Aprovar" value={pendingOrders.length} />
+                <SummaryCard label="Prontos" value={readyOrders.length} />
+                <SummaryCard label="Em atendimento" value={tableCounters.open} />
+                <SummaryCard label="Conta" value={tableCounters.bill} />
+              </div>
 
-            {tableMessage && (
-              <p className="mt-3 text-sm text-zinc-300">
-                {tableMessage}
-              </p>
-            )}
+              <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base font-bold">Fila de atendimento</h2>
+                    <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                      Ações principais em cards grandes, com um único scroll vertical.
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-zinc-300">
+                    {tables.length} mesas
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-2">
+                  <QuickActionButton
+                    label="Aprovar pedidos"
+                    detail={`${pendingOrders.length} pedido(s) aguardando aprovação`}
+                    onClick={() => setActiveTab("pending")}
+                  />
+                  <QuickActionButton
+                    label="Entregar pedidos prontos"
+                    detail={`${readyOrders.length} pedido(s) pronto(s) para entregar`}
+                    onClick={() => setActiveTab("ready")}
+                  />
+                  <QuickActionButton
+                    label="Acompanhar mesas"
+                    detail={`${tableCounters.pending} aguardando • ${tableCounters.open} em atendimento`}
+                    onClick={() => setActiveTab("tables")}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "pending" && (
+            <div className="space-y-4">
+              <SectionHeader
+                title="Aprovações"
+                description="Aprove os pedidos dos clientes antes de enviar para produção."
+                actionLabel="Atualizar"
+                onAction={() => loadPendingOrders().catch(() => null)}
+              />
+
+              <PendingOrdersList
+                orders={pendingOrders}
+                approvingOrderId={approvingOrderId}
+                onApproveOrder={handleApproveOrder}
+              />
+            </div>
+          )}
+
+          {activeTab === "ready" && (
+            <div className="space-y-4">
+              <SectionHeader
+                title="Entregas"
+                description="Marque como entregue quando levar o pedido para a mesa."
+                actionLabel="Atualizar"
+                onAction={() => loadReadyOrders().catch(() => null)}
+              />
+
+              <ReadyOrdersList
+                orders={readyOrders}
+                deliveringOrderId={deliveringOrderId}
+                onMarkDelivered={handleMarkDelivered}
+              />
+            </div>
+          )}
+
+          {activeTab === "tables" && (
+            <div className="space-y-4">
+              <SectionHeader
+                title="Mesas"
+                description="Acompanhe aprovações, atendimento e solicitações de conta."
+                actionLabel="Atualizar"
+                onAction={() => loadTables().catch(() => null)}
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <SummaryCard label="Livres" value={tableCounters.available} compact />
+                <SummaryCard label="Aprovar" value={tableCounters.pending} compact />
+                <SummaryCard label="Atendimento" value={tableCounters.open} compact />
+                <SummaryCard label="Conta" value={tableCounters.bill} compact />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {TABLE_FILTERS.map((filter) => {
+                  const isActive = tableFilter === filter.id;
+                  const count = filter.countKey ? tableCounters[filter.countKey] : tables.length;
+
+                  return (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => setTableFilter(filter.id)}
+                      className={`rounded-2xl border px-3 py-2 text-xs font-semibold transition active:scale-95 ${
+                        isActive
+                          ? "border-orange-500 bg-orange-500 text-white"
+                          : "border-white/10 bg-white/[0.04] text-zinc-300"
+                      }`}
+                    >
+                      {filter.label} <span className="opacity-80">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {filteredTables.length === 0 ? (
+                <EmptyMobileState text="Nenhuma mesa encontrada nesse filtro." />
+              ) : (
+                <WaiterTableGrid
+                  tables={filteredTables}
+                  approvingTableId={approvingTableId}
+                  requestingBillTableId={requestingBillTableId}
+                  onApproveSession={handleApproveTableSession}
+                  onRequestBill={handleRequestBill}
+                />
+              )}
+            </div>
+          )}
+        </section>
+
+        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-white/10 bg-zinc-950/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
+          <div className="grid grid-cols-4 gap-1">
+            {WAITER_TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`min-w-0 rounded-2xl px-1 py-2 text-center text-[10px] font-semibold transition active:scale-95 ${
+                    isActive
+                      ? "bg-orange-500 text-white shadow-[0_0_18px_rgba(249,115,22,0.22)]"
+                      : "text-zinc-400"
+                  }`}
+                >
+                  <span className="block text-base leading-none">{tab.icon}</span>
+                  <span className="mt-1 block truncate leading-tight">{tab.shortLabel}</span>
+                </button>
+              );
+            })}
           </div>
-
-          <WaiterTableGrid
-            tables={tables}
-            approvingTableId={approvingTableId}
-            requestingBillTableId={requestingBillTableId}
-            onApproveSession={handleApproveTableSession}
-            onRequestBill={handleRequestBill}
-          />
-        </Card>
-      </section>
+        </nav>
+      </div>
     </main>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  compact = false,
+}: {
+  label: string;
+  value: number | string;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] ${compact ? "p-3" : "p-4"}`}>
+      <p className="truncate text-xs text-zinc-400">{label}</p>
+      <p className={`${compact ? "mt-1 text-xl" : "mt-2 text-2xl"} truncate font-black text-white`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function QuickActionButton({
+  label,
+  detail,
+  onClick,
+}: {
+  label: string;
+  detail: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-left transition active:scale-[0.99]"
+    >
+      <span className="block text-sm font-bold text-white">{label}</span>
+      <span className="mt-1 block text-xs leading-relaxed text-zinc-400">
+        {detail}
+      </span>
+    </button>
+  );
+}
+
+function SectionHeader({
+  title,
+  description,
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-black leading-tight">{title}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-zinc-400">{description}</p>
+        </div>
+        {actionLabel && onAction && (
+          <Button type="button" onClick={onAction} className="shrink-0 px-3 py-2 text-xs">
+            {actionLabel}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyMobileState({ text }: { text: string }) {
+  return (
+    <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
+      <p className="text-sm text-zinc-400">{text}</p>
+    </div>
   );
 }
