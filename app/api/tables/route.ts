@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getBearerToken } from "@/lib/auth/request-auth";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const ACTIVE_SESSION_STATUSES = [
@@ -118,6 +119,64 @@ export async function PATCH(request: Request) {
     const tableId = String(body.tableId ?? "").trim();
     const action = String(body.action ?? "").trim();
 
+    if (action === "REGENERATE_ALL_QR") {
+      const { data: activeSessions, error: activeSessionsError } = await supabase
+        .from("table_sessions")
+        .select("id")
+        .eq("restaurant_id", restaurantId)
+        .in("status", ACTIVE_SESSION_STATUSES);
+
+      if (activeSessionsError) {
+        throw new Error(activeSessionsError.message);
+      }
+
+      if ((activeSessions ?? []).length > 0) {
+        throw new Error(
+          "Feche ou finalize todas as mesas ativas antes de gerar novos QR Codes para todas as mesas.",
+        );
+      }
+
+      const { data: restaurantTables, error: tablesError } = await supabaseAdmin
+        .from("tables")
+        .select("id")
+        .eq("restaurant_id", restaurantId);
+
+      if (tablesError) {
+        throw new Error(tablesError.message);
+      }
+
+      const tablesToUpdate = restaurantTables ?? [];
+
+      const updatedTables = await Promise.all(
+        tablesToUpdate.map(async (table) => {
+          const { data: updatedTable, error: updateError } = await supabaseAdmin
+            .from("tables")
+            .update({
+              qr_token: createQrToken(),
+            })
+            .eq("id", table.id)
+            .eq("restaurant_id", restaurantId)
+            .select("id, restaurant_id, name, qr_token, is_active, created_at")
+            .single();
+
+          if (updateError) {
+            throw new Error(updateError.message);
+          }
+
+          return {
+            ...updatedTable,
+            operational_status: "AVAILABLE",
+            active_session_id: null,
+          };
+        }),
+      );
+
+      return NextResponse.json({
+        tables: updatedTables,
+        message: `${updatedTables.length} QR Code(s) gerado(s) com sucesso.`,
+      });
+    }
+
     if (!tableId) {
       throw new Error("Informe a mesa.");
     }
@@ -141,7 +200,7 @@ export async function PATCH(request: Request) {
         );
       }
 
-      const { data: updatedTable, error: updateError } = await supabase
+      const { data: updatedTable, error: updateError } = await supabaseAdmin
         .from("tables")
         .update({
           qr_token: createQrToken(),

@@ -11,6 +11,7 @@ import { ProductList } from "@/components/manager/ProductList";
 import { CreateProductForm } from "@/components/manager/CreateProductForm";
 import { CategoryList } from "@/components/manager/CategoryList";
 import { CreateCategoryForm } from "@/components/manager/CreateCategoryForm";
+import { TableQrActions, TableQrModal } from "@/components/manager/TableQrTools";
 import { Button } from "@/components/ui/Button";
 import { signOut } from "@/lib/auth/auth-service";
 import { getCurrentSession } from "@/lib/auth/session-service";
@@ -164,6 +165,9 @@ export default function ManagerPage() {
   const [approvingTableId, setApprovingTableId] = useState<string | null>(null);
   const [requestingBillTableId, setRequestingBillTableId] = useState<string | null>(null);
   const [closingTableId, setClosingTableId] = useState<string | null>(null);
+  const [regeneratingQrTableId, setRegeneratingQrTableId] = useState<string | null>(null);
+  const [regeneratingAllQrs, setRegeneratingAllQrs] = useState(false);
+  const [qrModalTable, setQrModalTable] = useState<TableWithStatus | null>(null);
   const [approvingOrderId, setApprovingOrderId] = useState<string | null>(null);
 
   const tableCounters = useMemo(
@@ -337,6 +341,109 @@ export default function ManagerPage() {
     }
   }
 
+
+  async function handleRegenerateTableQr(table: TableWithStatus) {
+    if (table.active_session_id) {
+      setMessage("Feche a mesa antes de gerar um novo QR Code.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Gerar um novo QR Code para ${table.name}? O QR antigo impresso para esta mesa deixará de funcionar.`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setRegeneratingQrTableId(table.id);
+      setMessage(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/tables", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ tableId: table.id, action: "REGENERATE_QR" }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao gerar novo QR Code.");
+      }
+
+      const updatedTable = data.table as TableWithStatus | undefined;
+
+      if (updatedTable) {
+        setTables((currentTables) =>
+          currentTables.map((currentTable) =>
+            currentTable.id === table.id ? { ...currentTable, ...updatedTable } : currentTable,
+          ),
+        );
+
+        setQrModalTable((currentTable) =>
+          currentTable?.id === table.id ? { ...currentTable, ...updatedTable } : currentTable,
+        );
+      }
+
+      setMessage(`Novo QR Code gerado para ${table.name}.`);
+      await Promise.allSettled([loadTables(), loadDashboard()]);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erro ao gerar novo QR Code.");
+    } finally {
+      setRegeneratingQrTableId(null);
+    }
+  }
+
+  async function handleRegenerateAllQrs() {
+    const activeTables = tables.filter((table) => table.active_session_id);
+
+    if (activeTables.length > 0) {
+      setMessage("Feche todas as mesas ativas antes de gerar novos QR Codes para todas.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Gerar novos QR Codes para todas as mesas? Todos os QR Codes antigos impressos deixarão de funcionar.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setRegeneratingAllQrs(true);
+      setMessage(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/tables", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ action: "REGENERATE_ALL_QR" }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao gerar novos QR Codes.");
+      }
+
+      setTables(data.tables ?? []);
+      setQrModalTable(null);
+      setMessage(data.message ?? "Novos QR Codes gerados com sucesso.");
+      await Promise.allSettled([loadTables(), loadDashboard()]);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erro ao gerar novos QR Codes.");
+    } finally {
+      setRegeneratingAllQrs(false);
+    }
+  }
+
   async function handleApproveOrder(orderId: string) {
     try {
       setApprovingOrderId(orderId);
@@ -491,10 +598,18 @@ export default function ManagerPage() {
             <div className="space-y-4">
               <SectionHeader
                 title="Mesas"
-                description="Tudo em lista única, sem painel lateral e sem corte de tela."
-                actionLabel="Atualizar"
-                onAction={() => loadTables().catch(() => null)}
+                description="Controle de atendimento, fechamento e QR Codes imprimíveis."
+                actionLabel={regeneratingAllQrs ? "Gerando..." : "Novos QR"}
+                onAction={handleRegenerateAllQrs}
               />
+
+              <button
+                type="button"
+                onClick={() => loadTables().catch(() => null)}
+                className="min-h-11 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200"
+              >
+                Atualizar mesas
+              </button>
 
               <div className="grid grid-cols-2 gap-2">
                 <SummaryCard label="Livres" value={tableCounters.available} compact />
@@ -536,6 +651,9 @@ export default function ManagerPage() {
                       approvingTableId={approvingTableId}
                       requestingBillTableId={requestingBillTableId}
                       closingTableId={closingTableId}
+                      regeneratingQrTableId={regeneratingQrTableId}
+                      onOpenQr={() => setQrModalTable(table)}
+                      onRegenerateQr={() => handleRegenerateTableQr(table)}
                       onApprove={() =>
                         patchTable(
                           table.id,
@@ -632,6 +750,15 @@ export default function ManagerPage() {
             </div>
           )}
         </section>
+
+        {qrModalTable && (
+          <TableQrModal
+            table={qrModalTable}
+            onClose={() => setQrModalTable(null)}
+            onRegenerateQr={handleRegenerateTableQr}
+            isRegenerating={regeneratingQrTableId === qrModalTable.id}
+          />
+        )}
 
         <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-white/10 bg-zinc-950/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
           <div className="grid grid-cols-6 gap-1">
@@ -747,11 +874,17 @@ function ManagerTableCard({
   onApprove,
   onRequestBill,
   onClose,
+  regeneratingQrTableId,
+  onOpenQr,
+  onRegenerateQr,
 }: {
   table: TableWithStatus;
   approvingTableId: string | null;
   requestingBillTableId: string | null;
   closingTableId: string | null;
+  regeneratingQrTableId: string | null;
+  onOpenQr: () => void;
+  onRegenerateQr: () => void;
   onApprove: () => void;
   onRequestBill: () => void;
   onClose: () => void;
@@ -782,6 +915,15 @@ function ManagerTableCard({
             {table.qr_token}
           </span>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <TableQrActions
+          table={table}
+          onOpenQr={onOpenQr}
+          onRegenerateQr={onRegenerateQr}
+          isRegenerating={regeneratingQrTableId === table.id}
+        />
       </div>
 
       <div className="mt-4 grid gap-2">

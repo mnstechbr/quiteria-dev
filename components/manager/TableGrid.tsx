@@ -1,5 +1,6 @@
 "use client";
 
+import { TableQrActions } from "@/components/manager/TableQrTools";
 import { TableWithStatus } from "@/types/table";
 
 type TableGridProps = {
@@ -10,6 +11,9 @@ type TableGridProps = {
   onApproveSession?: (tableId: string) => void;
   onRequestBill?: (tableId: string) => void;
   onCloseSession?: (tableId: string) => void;
+  regeneratingQrTableId?: string | null;
+  onOpenQr?: (table: TableWithStatus) => void;
+  onRegenerateQr?: (table: TableWithStatus) => void;
 };
 
 function getTableStatusInfo(status: TableWithStatus["operational_status"]) {
@@ -56,6 +60,9 @@ export function TableGrid({
   onApproveSession,
   onRequestBill,
   onCloseSession,
+  regeneratingQrTableId = null,
+  onOpenQr,
+  onRegenerateQr,
 }: TableGridProps) {
   if (tables.length === 0) {
     return (
@@ -77,6 +84,7 @@ export function TableGrid({
         const isApproving = approvingTableId === table.id;
         const isRequestingBill = requestingBillTableId === table.id;
         const isClosing = closingTableId === table.id;
+        const isRegeneratingQr = regeneratingQrTableId === table.id;
 
         return (
           <article
@@ -117,9 +125,23 @@ export function TableGrid({
               </div>
             </div>
 
-            <p className="mt-3 break-all rounded-2xl border border-white/10 bg-black/20 p-3 text-[11px] leading-relaxed text-zinc-500">
-              QR: {table.qr_token}
-            </p>
+            <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-600">Token QR</p>
+              <p className="mt-1 break-all text-[11px] leading-relaxed text-zinc-400">
+                {table.qr_token}
+              </p>
+            </div>
+
+            {onOpenQr && (
+              <div className="mt-3">
+                <TableQrActions
+                  table={table}
+                  onOpenQr={onOpenQr}
+                  onRegenerateQr={onRegenerateQr}
+                  isRegenerating={isRegeneratingQr}
+                />
+              </div>
+            )}
 
             <div className="mt-4 space-y-2">
               {isPendingApproval && onApproveSession && (
