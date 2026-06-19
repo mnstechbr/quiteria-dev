@@ -218,29 +218,30 @@ textarea {
 }
 
 .q-metric-green {
-  border-color: rgba(34, 197, 94, 0.32);
-  background: linear-gradient(180deg, rgba(34, 197, 94, 0.14), rgba(17, 28, 24, 0.78));
+  border-color: rgba(34, 197, 94, 0.26);
 }
 
 .q-metric-orange {
-  border-color: rgba(245, 158, 11, 0.34);
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.14), rgba(17, 28, 24, 0.78));
+  border-color: rgba(245, 158, 11, 0.26);
 }
 
 .q-metric-blue {
-  border-color: rgba(59, 130, 246, 0.34);
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.14), rgba(17, 28, 24, 0.78));
+  border-color: rgba(59, 130, 246, 0.24);
 }
 
 .q-metric-red {
-  border-color: rgba(239, 68, 68, 0.34);
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.14), rgba(17, 28, 24, 0.78));
+  border-color: rgba(239, 68, 68, 0.24);
 }
 
 .q-metric-yellow {
-  border-color: rgba(245, 158, 11, 0.34);
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.14), rgba(17, 28, 24, 0.78));
+  border-color: rgba(245, 158, 11, 0.24);
 }
+
+.q-stat-value-green { color: #86efac; }
+.q-stat-value-orange { color: #fed7aa; }
+.q-stat-value-blue { color: #bae6fd; }
+.q-stat-value-red { color: #fecaca; }
+.q-stat-value-yellow { color: #fde68a; }
 
 .q-chip {
   border: 1px solid var(--q-border);

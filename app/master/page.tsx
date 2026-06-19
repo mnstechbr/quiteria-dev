@@ -63,10 +63,12 @@ type MasterDashboard = {
 const MASTER_NAV_ITEMS: Array<{
   id: MasterSection;
   label: string;
+  shortLabel: string;
+  icon: string;
 }> = [
-  { id: "overview", label: "Início" },
-  { id: "new", label: "Novo" },
-  { id: "restaurants", label: "Clientes" },
+  { id: "overview", label: "Início", shortLabel: "Início", icon: "IN" },
+  { id: "new", label: "Novo", shortLabel: "Novo", icon: "NV" },
+  { id: "restaurants", label: "Clientes", shortLabel: "Clientes", icon: "CL" },
 ];
 
 const RESTAURANT_FILTERS: Array<{
@@ -161,20 +163,28 @@ function MetricCard({
   tone?: "default" | "green" | "orange" | "yellow" | "red";
 }) {
   const toneClass = {
-    default: "q-metric text-white",
-    green: "q-metric q-metric-green text-emerald-100",
-    orange: "q-metric q-metric-orange text-orange-100",
-    yellow: "q-metric q-metric-yellow text-yellow-100",
-    red: "q-metric q-metric-red text-red-100",
+    default: "q-metric",
+    green: "q-metric q-metric-green",
+    orange: "q-metric q-metric-orange",
+    yellow: "q-metric q-metric-yellow",
+    red: "q-metric q-metric-red",
+  }[tone];
+
+  const valueClass = {
+    default: "text-white",
+    green: "q-stat-value-green",
+    orange: "q-stat-value-orange",
+    yellow: "q-stat-value-yellow",
+    red: "q-stat-value-red",
   }[tone];
 
   return (
     <div className={toneClass}>
-      <p className="text-xs font-medium text-current/70">{label}</p>
-      <p className="mt-2 break-words text-2xl font-bold leading-tight text-current">
+      <p className="truncate text-xs font-medium text-[var(--q-muted)]">{label}</p>
+      <p className={`mt-2 break-words text-2xl font-black leading-tight ${valueClass}`}>
         {value}
       </p>
-      {helper && <p className="mt-2 text-xs leading-5 text-current/60">{helper}</p>}
+      {helper && <p className="mt-2 text-xs leading-5 text-[var(--q-dim)]">{helper}</p>}
     </div>
   );
 }
@@ -407,39 +417,43 @@ export default function MasterPage() {
   }
 
   return (
-    <main className="q-page">
-      <header className="q-topbar fixed inset-x-0 top-0 z-40">
-        <div className="q-mobile-frame flex h-16 items-center justify-between gap-3 px-4">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">
-              Master
-            </p>
-            <h1 className="truncate text-lg font-bold leading-tight text-white">
-              Quitéria
-            </h1>
-          </div>
+    <main className="min-h-dvh w-full overflow-x-hidden bg-[var(--q-bg-outer)] text-white">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col overflow-x-hidden bg-[var(--q-bg)]">
+        <header className="sticky top-0 z-40 shrink-0 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300">
+                Master
+              </p>
+              <h1 className="mt-1 truncate text-2xl font-black leading-tight">
+                Quitéria
+              </h1>
+              <p className="mt-1 truncate text-xs text-[var(--q-muted)]">
+                {MASTER_NAV_ITEMS.find((item) => item.id === activeSection)?.label} • Plataforma
+              </p>
+            </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={refreshDashboard}
-              disabled={refreshing}
-              className="q-action-secondary rounded-xl px-3 py-2 text-xs font-semibold transition disabled:opacity-60"
-            >
-              {refreshing ? "..." : "Atualizar"}
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="q-action-secondary rounded-xl px-3 py-2 text-xs font-semibold transition"
-            >
-              Sair
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={refreshDashboard}
+                disabled={refreshing}
+                className="shrink-0 rounded-2xl border border-[color:var(--q-border)] px-3 py-2 text-xs font-semibold text-[var(--q-text-soft)] transition active:scale-95 disabled:opacity-60"
+              >
+                {refreshing ? "..." : "Atualizar"}
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="shrink-0 rounded-2xl border border-[color:var(--q-border)] px-3 py-2 text-xs font-semibold text-[var(--q-text-soft)] transition active:scale-95"
+              >
+                Sair
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <section className="q-mobile-frame px-4 pb-28 pt-20">
+        <section className="flex-1 space-y-4 px-4 py-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))]">
         {message && (
           <div className="q-toast mb-4 p-3 text-sm leading-6">
             {message}
@@ -753,28 +767,33 @@ export default function MasterPage() {
             )}
           </div>
         )}
-      </section>
+        </section>
 
-      <nav className="q-bottom-nav fixed inset-x-0 bottom-0 z-40 px-4 py-3">
-        <div className="q-mobile-frame grid grid-cols-3 gap-2 text-center text-[11px]">
-          {MASTER_NAV_ITEMS.map((item) => {
-            const isActive = activeSection === item.id;
+        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
+          <div className="grid grid-cols-3 gap-1">
+            {MASTER_NAV_ITEMS.map((item) => {
+              const isActive = activeSection === item.id;
 
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveSection(item.id)}
-                className={`q-bottom-nav-item px-2 py-3 transition ${
-                  isActive ? "q-bottom-nav-item-active" : ""
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-current={isActive ? "page" : undefined}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`min-w-0 rounded-2xl px-1 py-2 text-center text-[10px] font-semibold transition active:scale-95 ${
+                    isActive
+                      ? "bg-emerald-500 text-white shadow-[0_0_18px_rgba(34,197,94,0.20)]"
+                      : "text-[var(--q-muted)]"
+                  }`}
+                >
+                  <span className="block text-base leading-none">{item.icon}</span>
+                  <span className="mt-1 block truncate leading-tight">{item.shortLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
     </main>
   );
 }

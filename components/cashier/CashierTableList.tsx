@@ -82,7 +82,7 @@ function getStatusInfo(status: TableWithStatus["operational_status"]) {
     return {
       label: "Aguardando aprovação",
       shortLabel: "Aprovar",
-      className: "border-yellow-300/50 bg-yellow-300/10 text-yellow-100",
+      className: "border-yellow-300/40 bg-yellow-300/10 text-yellow-100",
     };
   }
 
@@ -90,7 +90,7 @@ function getStatusInfo(status: TableWithStatus["operational_status"]) {
     return {
       label: "Em atendimento",
       shortLabel: "Atendimento",
-      className: "border-sky-300/50 bg-sky-300/10 text-sky-100",
+      className: "border-sky-300/40 bg-sky-300/10 text-sky-100",
     };
   }
 
@@ -98,14 +98,14 @@ function getStatusInfo(status: TableWithStatus["operational_status"]) {
     return {
       label: "Conta solicitada",
       shortLabel: "Conta",
-      className: "border-red-400/50 bg-red-400/10 text-red-100",
+      className: "border-red-400/40 bg-red-400/10 text-red-100",
     };
   }
 
   return {
     label: "Disponível",
     shortLabel: "Livre",
-    className: "border-emerald-300/50 bg-emerald-300/10 text-emerald-100",
+    className: "border-emerald-300/40 bg-emerald-300/10 text-emerald-100",
   };
 }
 
@@ -194,37 +194,37 @@ export function CashierTableList({
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           <div className="q-metric q-metric-red p-4">
-            <p className="text-xs text-red-100/80">Contas</p>
-            <p className="mt-1 text-2xl font-bold text-white">
+            <p className="truncate text-xs text-[var(--q-muted)]">Contas</p>
+            <p className="q-stat-value-red mt-1 text-2xl font-black">
               {tableSummary.bill}
             </p>
           </div>
 
           <div className="q-metric q-metric-blue p-4">
-            <p className="text-xs text-sky-100/80">Atendimento</p>
-            <p className="mt-1 text-2xl font-bold text-white">
+            <p className="truncate text-xs text-[var(--q-muted)]">Atendimento</p>
+            <p className="q-stat-value-blue mt-1 text-2xl font-black">
               {tableSummary.open}
             </p>
           </div>
 
           <div className="q-metric q-metric-yellow p-4">
-            <p className="text-xs text-yellow-100/80">Aprovação</p>
-            <p className="mt-1 text-2xl font-bold text-white">
+            <p className="truncate text-xs text-[var(--q-muted)]">Aprovação</p>
+            <p className="q-stat-value-yellow mt-1 text-2xl font-black">
               {tableSummary.pending}
             </p>
           </div>
 
           <div className="q-metric q-metric-green p-4">
-            <p className="text-xs text-emerald-100/80">Livres</p>
-            <p className="mt-1 text-2xl font-bold text-white">
+            <p className="truncate text-xs text-[var(--q-muted)]">Livres</p>
+            <p className="q-stat-value-green mt-1 text-2xl font-black">
               {tableSummary.available}
             </p>
           </div>
         </div>
 
         <div className="q-metric q-metric-orange mt-3 p-4">
-          <p className="text-xs text-orange-100/80">Consumo ativo</p>
-          <p className="mt-1 text-2xl font-bold text-white">
+          <p className="truncate text-xs text-[var(--q-muted)]">Consumo ativo</p>
+          <p className="q-stat-value-orange mt-1 text-2xl font-black">
             {formatCurrency(tableSummary.totalConsumption)}
           </p>
         </div>
@@ -462,19 +462,19 @@ export function CashierTableList({
               return (
                 <article
                   key={table.id}
-                  className={`q-panel p-4 ${statusInfo.className}`}
+                  className="q-panel p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="break-words text-lg font-bold text-white">
                         {table.name}
                       </h3>
-                      <p className="mt-1 text-sm font-medium">
+                      <p className="mt-1 text-sm font-medium text-[var(--q-muted)]">
                         {statusInfo.label}
                       </p>
                     </div>
 
-                    <span className="shrink-0 rounded-full border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/20 px-3 py-1 text-xs font-semibold text-white">
+                    <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${statusInfo.className}`}>
                       {statusInfo.shortLabel}
                     </span>
                   </div>

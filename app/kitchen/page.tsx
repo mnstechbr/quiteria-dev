@@ -14,12 +14,13 @@ const KITCHEN_TABS: Array<{
   id: KitchenTab;
   label: string;
   shortLabel: string;
+  icon: string;
   filter: KitchenItemFilter;
 }> = [
-  { id: "summary", label: "Resumo", shortLabel: "Início", filter: "ALL" },
-  { id: "received", label: "Recebidos", shortLabel: "Recebidos", filter: "RECEIVED" },
-  { id: "progress", label: "Em preparo", shortLabel: "Preparo", filter: "IN_PROGRESS" },
-  { id: "ready", label: "Prontos", shortLabel: "Prontos", filter: "READY" },
+  { id: "summary", label: "Resumo", shortLabel: "Início", icon: "IN", filter: "ALL" },
+  { id: "received", label: "Recebidos", shortLabel: "Recebidos", icon: "RE", filter: "RECEIVED" },
+  { id: "progress", label: "Em preparo", shortLabel: "Preparo", icon: "PR", filter: "IN_PROGRESS" },
+  { id: "ready", label: "Prontos", shortLabel: "Prontos", icon: "OK", filter: "READY" },
 ];
 
 const ITEM_STATUS_ORDER: Record<string, number> = {
@@ -241,19 +242,19 @@ export default function KitchenPage() {
   return (
     <main className="q-page">
       <div className="q-mobile-frame flex min-h-dvh flex-col pb-28">
-        <header className="q-topbar sticky top-0 z-30 px-4 pb-3 pt-4">
+        <header className="q-topbar sticky top-0 z-30 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
-                Quitéria
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300">
+                Painel da cozinha
               </p>
 
-              <h1 className="mt-1 truncate text-2xl font-black tracking-tight">
-                Cozinha
+              <h1 className="mt-1 truncate text-2xl font-black leading-tight">
+                Quitéria
               </h1>
 
-              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--q-muted)]">
-                Pedidos aprovados e enviados para preparo.
+              <p className="mt-1 truncate text-xs text-[var(--q-muted)]">
+                {activeTabConfig.label} • Produção
               </p>
             </div>
 
@@ -276,37 +277,37 @@ export default function KitchenPage() {
 
           <section className="grid grid-cols-2 gap-2">
             <div className="q-metric q-metric-orange p-4">
-              <p className="text-xs font-semibold text-orange-100/80">
+              <p className="truncate text-xs font-semibold text-[var(--q-muted)]">
                 Total na cozinha
               </p>
-              <p className="mt-2 text-3xl font-black text-orange-100">
+              <p className="q-stat-value-orange mt-2 text-3xl font-black">
                 {counters.total}
               </p>
             </div>
 
             <div className="q-metric q-metric-yellow p-4">
-              <p className="text-xs font-semibold text-yellow-100/80">
+              <p className="truncate text-xs font-semibold text-[var(--q-muted)]">
                 Recebidos
               </p>
-              <p className="mt-2 text-3xl font-black text-yellow-100">
+              <p className="q-stat-value-yellow mt-2 text-3xl font-black">
                 {counters.received}
               </p>
             </div>
 
             <div className="q-metric q-metric-blue p-4">
-              <p className="text-xs font-semibold text-sky-100/80">
+              <p className="truncate text-xs font-semibold text-[var(--q-muted)]">
                 Em preparo
               </p>
-              <p className="mt-2 text-3xl font-black text-sky-100">
+              <p className="q-stat-value-blue mt-2 text-3xl font-black">
                 {counters.progress}
               </p>
             </div>
 
             <div className="q-metric q-metric-green p-4">
-              <p className="text-xs font-semibold text-emerald-100/80">
+              <p className="truncate text-xs font-semibold text-[var(--q-muted)]">
                 Prontos
               </p>
-              <p className="mt-2 text-3xl font-black text-emerald-100">
+              <p className="q-stat-value-green mt-2 text-3xl font-black">
                 {counters.ready}
               </p>
             </div>
@@ -345,8 +346,8 @@ export default function KitchenPage() {
           />
         </section>
 
-        <nav className="q-bottom-nav fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
-          <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
+        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
+          <div className="grid grid-cols-4 gap-1">
             {KITCHEN_TABS.map((tab) => {
               const isActive = activeTab === tab.id;
 
@@ -354,12 +355,16 @@ export default function KitchenPage() {
                 <button
                   key={tab.id}
                   type="button"
+                  aria-current={isActive ? "page" : undefined}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`q-bottom-nav-item px-2 text-xs font-black ${
-                    isActive ? "q-bottom-nav-item-active" : ""
+                  className={`min-w-0 rounded-2xl px-1 py-2 text-center text-[10px] font-semibold transition active:scale-95 ${
+                    isActive
+                      ? "bg-emerald-500 text-white shadow-[0_0_18px_rgba(34,197,94,0.20)]"
+                      : "text-[var(--q-muted)]"
                   }`}
                 >
-                  {tab.shortLabel}
+                  <span className="block text-base leading-none">{tab.icon}</span>
+                  <span className="mt-1 block truncate leading-tight">{tab.shortLabel}</span>
                 </button>
               );
             })}

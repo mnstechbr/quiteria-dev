@@ -95,19 +95,6 @@ function getSessionCopy(status: string) {
   );
 }
 
-function getContrastColor(hexColor: string) {
-  const normalized = hexColor.replace("#", "");
-
-  if (normalized.length !== 6) return "#ffffff";
-
-  const red = parseInt(normalized.slice(0, 2), 16);
-  const green = parseInt(normalized.slice(2, 4), 16);
-  const blue = parseInt(normalized.slice(4, 6), 16);
-  const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
-
-  return brightness > 150 ? "#111827" : "#ffffff";
-}
-
 function safeColor(color: string | null | undefined, fallback: string) {
   if (!color) return fallback;
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
@@ -141,9 +128,9 @@ export function PublicMenu({
   const [message, setMessage] = useState<string | null>(null);
   const messageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const primaryColor = safeColor(settings?.primary_color, "#22c55e");
-  const secondaryColor = safeColor(settings?.secondary_color, "#080d0b");
-  const primaryTextColor = getContrastColor(primaryColor);
+  const restaurantAccent = safeColor(settings?.primary_color, "#22c55e");
+  const primaryColor = "#22c55e";
+  const primaryTextColor = "#041008";
   const sessionCopy = getSessionCopy(session.status);
   const orderBlocked = session.status === "BILL_REQUESTED";
 
@@ -305,7 +292,7 @@ export function PublicMenu({
       <section className="q-mobile-frame flex min-h-dvh flex-col pb-[calc(104px+env(safe-area-inset-bottom))] shadow-2xl shadow-black/40">
         <header
           className="shrink-0 overflow-hidden border-b border-[color:var(--q-border)] bg-[var(--q-bg)]"
-          style={{ borderColor: `${primaryColor}33` }}
+          style={{ borderColor: `${restaurantAccent}33` }}
         >
           {settings?.banner_url ? (
             <button
@@ -329,7 +316,7 @@ export function PublicMenu({
             <div
               className="h-16 w-full"
               style={{
-                background: `linear-gradient(135deg, ${secondaryColor}, ${primaryColor}44)`,
+                background: `linear-gradient(135deg, rgba(17,28,24,0.96), ${restaurantAccent}26)`,
               }}
             />
           )}
@@ -337,7 +324,7 @@ export function PublicMenu({
           <div
             className="px-4 py-3"
             style={{
-              background: `linear-gradient(135deg, ${secondaryColor}f2, #09090bf2)`,
+              background: "linear-gradient(135deg, rgba(17,28,24,0.96), rgba(8,13,11,0.98))",
             }}
           >
             <div className="flex min-w-0 items-center gap-3">
