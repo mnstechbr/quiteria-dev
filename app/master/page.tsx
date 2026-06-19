@@ -90,26 +90,36 @@ const integerFormatter = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 0,
 });
 
+function isOperationalActive(restaurant: Pick<Restaurant, "setup_status" | "is_active">) {
+  return restaurant.is_active && restaurant.setup_status !== "SUSPENDED";
+}
+
+function hasPendingSetup(restaurant: Pick<Restaurant, "setup_status">) {
+  return restaurant.setup_status === "PENDING";
+}
+
 function getStatusLabel(restaurant: Pick<Restaurant, "setup_status" | "is_active">) {
-  if (!restaurant.is_active || restaurant.setup_status === "SUSPENDED") {
+  if (!isOperationalActive(restaurant)) {
     return "Desativado";
   }
 
-  if (restaurant.setup_status === "ACTIVE") return "Ativo";
+  if (hasPendingSetup(restaurant)) {
+    return "Ativo · setup pendente";
+  }
 
-  return "Pendente";
+  return "Ativo";
 }
 
 function getStatusClass(restaurant: Pick<Restaurant, "setup_status" | "is_active">) {
-  if (!restaurant.is_active || restaurant.setup_status === "SUSPENDED") {
+  if (!isOperationalActive(restaurant)) {
     return "border-red-400/40 bg-red-400/10 text-red-200";
   }
 
-  if (restaurant.setup_status === "ACTIVE") {
-    return "border-emerald-300/40 bg-emerald-300/10 text-emerald-200";
+  if (hasPendingSetup(restaurant)) {
+    return "border-yellow-300/40 bg-yellow-300/10 text-yellow-200";
   }
 
-  return "border-yellow-300/40 bg-yellow-300/10 text-yellow-200";
+  return "border-emerald-300/40 bg-emerald-300/10 text-emerald-200";
 }
 
 function formatMoney(value: number) {
@@ -136,7 +146,7 @@ function formatDateTime(value: string | null) {
 }
 
 function isSuspended(restaurant: Pick<Restaurant, "setup_status" | "is_active">) {
-  return !restaurant.is_active || restaurant.setup_status === "SUSPENDED";
+  return !isOperationalActive(restaurant);
 }
 
 function MetricCard({
@@ -197,7 +207,7 @@ export default function MasterPage() {
       if (!matchesSearch) return false;
 
       if (restaurantFilter === "active") {
-        return restaurant.is_active && restaurant.setup_status === "ACTIVE";
+        return isOperationalActive(restaurant);
       }
 
       if (restaurantFilter === "suspended") {

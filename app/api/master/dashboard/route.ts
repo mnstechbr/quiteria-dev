@@ -334,7 +334,7 @@ export async function GET(request: Request) {
 
         accumulator.total_restaurants += 1;
         accumulator.active_restaurants +=
-          restaurant.is_active && restaurant.setup_status === "ACTIVE" ? 1 : 0;
+          restaurant.is_active && restaurant.setup_status !== "SUSPENDED" ? 1 : 0;
         accumulator.pending_restaurants +=
           restaurant.setup_status === "PENDING" ? 1 : 0;
         accumulator.suspended_restaurants +=
