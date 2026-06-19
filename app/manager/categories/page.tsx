@@ -91,6 +91,12 @@ export default function ManagerCategoriesPage() {
     setMessage("Categoria criada com sucesso.");
   }
 
+  function handleCategoryDeleted(categoryId: string) {
+    setCategories((currentCategories) =>
+      currentCategories.filter((category) => category.id !== categoryId),
+    );
+  }
+
   async function handleRefresh() {
     try {
       setMessage(null);
@@ -150,7 +156,7 @@ export default function ManagerCategoriesPage() {
           </p>
         )}
 
-        <CategoryList categories={categories} />
+        <CategoryList categories={categories} onDeleted={handleCategoryDeleted} />
       </MobileSectionCard>
     </ManagerMobileShell>
   );

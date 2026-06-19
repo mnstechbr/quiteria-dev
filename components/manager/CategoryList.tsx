@@ -1,13 +1,81 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase/client";
 import { Category } from "@/types/category";
 
 type CategoryListProps = {
   categories: Category[];
+  onDeleted?: (categoryId: string) => void;
 };
 
-export function CategoryList({ categories }: CategoryListProps) {
-  if (categories.length === 0) {
+export function CategoryList({ categories, onDeleted }: CategoryListProps) {
+  const [localCategories, setLocalCategories] = useState<Category[]>(categories);
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalCategories(categories);
+  }, [categories]);
+
+  async function getAccessToken() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error("Sessão não encontrada.");
+    }
+
+    return session.access_token;
+  }
+
+  async function handleDeleteCategory(category: Category) {
+    const confirmed = window.confirm(
+      `Excluir ${category.name}? Se a categoria tiver produtos vinculados, ela e esses produtos serão removidos do cardápio sem apagar o histórico de pedidos.`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingCategoryId(category.id);
+      setMessage(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/categories", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ id: category.id }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao excluir categoria.");
+      }
+
+      setLocalCategories((currentCategories) =>
+        currentCategories.filter(
+          (currentCategory) => currentCategory.id !== category.id,
+        ),
+      );
+
+      onDeleted?.(category.id);
+      setMessage(data.message ?? "Categoria excluída com sucesso.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Erro ao excluir categoria.",
+      );
+    } finally {
+      setDeletingCategoryId(null);
+    }
+  }
+
+  if (localCategories.length === 0) {
     return (
       <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
         <p className="text-sm text-zinc-400">Nenhuma categoria cadastrada.</p>
@@ -17,7 +85,13 @@ export function CategoryList({ categories }: CategoryListProps) {
 
   return (
     <div className="space-y-3">
-      {categories.map((category) => (
+      {message && (
+        <p className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-relaxed text-zinc-300">
+          {message}
+        </p>
+      )}
+
+      {localCategories.map((category) => (
         <article
           key={category.id}
           className="w-full rounded-3xl border border-white/10 bg-zinc-900/70 p-4"
@@ -41,6 +115,17 @@ export function CategoryList({ categories }: CategoryListProps) {
             >
               {category.is_active ? "Ativa" : "Inativa"}
             </span>
+          </div>
+
+          <div className="mt-4">
+            <button
+              type="button"
+              disabled={deletingCategoryId === category.id}
+              onClick={() => handleDeleteCategory(category)}
+              className="min-h-12 w-full rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {deletingCategoryId === category.id ? "Excluindo..." : "Excluir categoria"}
+            </button>
           </div>
         </article>
       ))}
