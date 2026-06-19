@@ -228,7 +228,7 @@ export default function KitchenPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-[var(--q-bg)] px-6 text-center text-sm font-semibold text-white">
+      <main className="q-page flex min-h-dvh items-center justify-center px-6 text-center text-sm font-semibold text-[var(--q-text-soft)]">
         Carregando cozinha...
       </main>
     );
@@ -239,9 +239,9 @@ export default function KitchenPage() {
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-[var(--q-bg)] text-white">
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col pb-28">
-        <header className="sticky top-0 z-30 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 pb-3 pt-4 backdrop-blur">
+    <main className="q-page">
+      <div className="q-mobile-frame flex min-h-dvh flex-col pb-28">
+        <header className="q-topbar sticky top-0 z-30 px-4 pb-3 pt-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
@@ -260,7 +260,7 @@ export default function KitchenPage() {
             <button
               type="button"
               onClick={handleLogout}
-              className="shrink-0 rounded-2xl border border-[color:var(--q-border)] px-3 py-2 text-xs font-bold text-[var(--q-text-soft)] active:scale-[0.98]"
+              className="q-action-secondary shrink-0 rounded-2xl px-3 py-2 text-xs font-bold active:scale-[0.98]"
             >
               Sair
             </button>
@@ -269,13 +269,13 @@ export default function KitchenPage() {
 
         <section className="flex-1 space-y-4 px-4 py-4">
           {message && (
-            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4 text-sm leading-relaxed text-[var(--q-text-soft)]">
+            <div className="q-toast p-4 text-sm leading-relaxed">
               {message}
             </div>
           )}
 
           <section className="grid grid-cols-2 gap-2">
-            <div className="rounded-3xl border border-orange-300/50 bg-orange-300/10 p-4 shadow-[0_0_18px_rgba(253,186,116,0.10)]">
+            <div className="q-metric q-metric-orange p-4">
               <p className="text-xs font-semibold text-orange-100/80">
                 Total na cozinha
               </p>
@@ -284,7 +284,7 @@ export default function KitchenPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-yellow-300/50 bg-yellow-300/10 p-4 shadow-[0_0_18px_rgba(253,224,71,0.10)]">
+            <div className="q-metric q-metric-yellow p-4">
               <p className="text-xs font-semibold text-yellow-100/80">
                 Recebidos
               </p>
@@ -293,7 +293,7 @@ export default function KitchenPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-sky-300/50 bg-sky-300/10 p-4 shadow-[0_0_18px_rgba(125,211,252,0.10)]">
+            <div className="q-metric q-metric-blue p-4">
               <p className="text-xs font-semibold text-sky-100/80">
                 Em preparo
               </p>
@@ -302,7 +302,7 @@ export default function KitchenPage() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-emerald-300/50 bg-emerald-300/10 p-4 shadow-[0_0_18px_rgba(110,231,183,0.10)]">
+            <div className="q-metric q-metric-green p-4">
               <p className="text-xs font-semibold text-emerald-100/80">
                 Prontos
               </p>
@@ -312,7 +312,7 @@ export default function KitchenPage() {
             </div>
           </section>
 
-          <div className="flex items-center justify-between gap-3 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3">
+          <div className="q-panel flex items-center justify-between gap-3 p-3">
             <div className="min-w-0">
               <p className="text-sm font-black text-white">
                 {activeTabConfig.label}
@@ -326,7 +326,7 @@ export default function KitchenPage() {
               type="button"
               disabled={refreshing}
               onClick={refreshOrders}
-              className="min-h-11 shrink-0 rounded-2xl border border-[color:var(--q-border)] px-4 text-xs font-black text-[var(--q-text)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="q-action-secondary min-h-11 shrink-0 rounded-2xl px-4 text-xs font-black active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {refreshing ? "Atualizando..." : "Atualizar"}
             </button>
@@ -345,7 +345,7 @@ export default function KitchenPage() {
           />
         </section>
 
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 backdrop-blur">
+        <nav className="q-bottom-nav fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
             {KITCHEN_TABS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -355,10 +355,8 @@ export default function KitchenPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`min-h-14 rounded-2xl px-2 text-xs font-black transition active:scale-[0.98] ${
-                    isActive
-                      ? "bg-emerald-500 text-white shadow-[0_0_20px_rgba(34,197,94,0.20)]"
-                      : "border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] text-[var(--q-muted)]"
+                  className={`q-bottom-nav-item px-2 text-xs font-black ${
+                    isActive ? "q-bottom-nav-item-active" : ""
                   }`}
                 >
                   {tab.shortLabel}

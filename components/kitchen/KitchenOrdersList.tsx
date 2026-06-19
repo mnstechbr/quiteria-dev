@@ -61,7 +61,7 @@ export function KitchenOrdersList({
 }: KitchenOrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-8 text-center">
+      <div className="q-panel border-dashed p-8 text-center">
         <p className="text-sm leading-relaxed text-[var(--q-muted)]">{emptyMessage}</p>
       </div>
     );
@@ -72,7 +72,7 @@ export function KitchenOrdersList({
       {orders.map((order) => (
         <article
           key={order.id}
-          className="overflow-hidden rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)]"
+          className="q-panel overflow-hidden"
         >
           <header className="border-b border-[color:var(--q-border)] p-4">
             <div className="flex items-start justify-between gap-3">
@@ -100,7 +100,7 @@ export function KitchenOrdersList({
               return (
                 <section
                   key={item.id}
-                  className={`rounded-3xl border p-4 ${statusInfo.card}`}
+                  className={`rounded-3xl border p-4 ${statusInfo.card} shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
@@ -109,7 +109,7 @@ export function KitchenOrdersList({
                       </p>
 
                       {item.notes && (
-                        <p className="mt-2 break-words rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.42)] p-3 text-sm leading-relaxed text-[var(--q-text-soft)]">
+                        <p className="q-panel-soft mt-2 break-words p-3 text-sm leading-relaxed text-[var(--q-text-soft)]">
                           Obs: {item.notes}
                         </p>
                       )}
@@ -118,7 +118,7 @@ export function KitchenOrdersList({
                     <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${statusInfo.dot}`} />
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.42)] p-3">
+                  <div className="q-panel-soft mt-4 flex items-center justify-between gap-3 p-3">
                     <span className="text-xs font-semibold text-[var(--q-dim)]">
                       Status
                     </span>
@@ -133,7 +133,7 @@ export function KitchenOrdersList({
                         type="button"
                         disabled={isUpdating}
                         onClick={() => onStartItem(item.id)}
-                        className="min-h-12 w-full rounded-2xl bg-sky-500 px-4 py-3 text-sm font-black text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="q-action-secondary min-h-12 w-full rounded-2xl px-4 py-3 text-sm font-black transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isUpdating ? "Atualizando..." : "Iniciar preparo"}
                       </button>
@@ -144,7 +144,7 @@ export function KitchenOrdersList({
                         type="button"
                         disabled={isUpdating}
                         onClick={() => onMarkReady(item.id)}
-                        className="min-h-12 w-full rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-black text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="q-action-primary min-h-12 w-full rounded-2xl px-4 py-3 text-sm font-black transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isUpdating ? "Atualizando..." : "Marcar pronto"}
                       </button>

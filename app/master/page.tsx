@@ -161,15 +161,15 @@ function MetricCard({
   tone?: "default" | "green" | "orange" | "yellow" | "red";
 }) {
   const toneClass = {
-    default: "border-[color:var(--q-border)] bg-[rgba(17,28,24,0.86)] text-white",
-    green: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
-    orange: "border-orange-300/30 bg-orange-300/10 text-orange-100",
-    yellow: "border-yellow-300/30 bg-yellow-300/10 text-yellow-100",
-    red: "border-red-300/30 bg-red-300/10 text-red-100",
+    default: "q-metric text-white",
+    green: "q-metric q-metric-green text-emerald-100",
+    orange: "q-metric q-metric-orange text-orange-100",
+    yellow: "q-metric q-metric-yellow text-yellow-100",
+    red: "q-metric q-metric-red text-red-100",
   }[tone];
 
   return (
-    <div className={`rounded-2xl border p-4 ${toneClass}`}>
+    <div className={toneClass}>
       <p className="text-xs font-medium text-current/70">{label}</p>
       <p className="mt-2 break-words text-2xl font-bold leading-tight text-current">
         {value}
@@ -396,7 +396,7 @@ export default function MasterPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh items-center justify-center overflow-x-hidden bg-[var(--q-bg)] px-4 text-center text-sm text-[var(--q-text-soft)]">
+      <main className="q-page flex min-h-dvh items-center justify-center px-4 text-center text-sm text-[var(--q-text-soft)]">
         Carregando painel master...
       </main>
     );
@@ -407,9 +407,9 @@ export default function MasterPage() {
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-[var(--q-bg)] text-white">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-md items-center justify-between gap-3 px-4">
+    <main className="q-page">
+      <header className="q-topbar fixed inset-x-0 top-0 z-40">
+        <div className="q-mobile-frame flex h-16 items-center justify-between gap-3 px-4">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">
               Master
@@ -424,14 +424,14 @@ export default function MasterPage() {
               type="button"
               onClick={refreshDashboard}
               disabled={refreshing}
-              className="rounded-xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-3 py-2 text-xs font-semibold text-[var(--q-text-soft)] transition hover:border-emerald-500 hover:text-white disabled:opacity-60"
+              className="q-action-secondary rounded-xl px-3 py-2 text-xs font-semibold transition disabled:opacity-60"
             >
               {refreshing ? "..." : "Atualizar"}
             </button>
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-3 py-2 text-xs font-semibold text-[var(--q-text-soft)] transition hover:border-emerald-500 hover:bg-[rgba(17,28,24,0.86)] hover:text-white"
+              className="q-action-secondary rounded-xl px-3 py-2 text-xs font-semibold transition"
             >
               Sair
             </button>
@@ -439,16 +439,16 @@ export default function MasterPage() {
         </div>
       </header>
 
-      <section className="mx-auto w-full max-w-md px-4 pb-28 pt-20">
+      <section className="q-mobile-frame px-4 pb-28 pt-20">
         {message && (
-          <div className="mb-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm leading-6 text-[var(--q-text-soft)]">
+          <div className="q-toast mb-4 p-3 text-sm leading-6">
             {message}
           </div>
         )}
 
         {activeSection === "overview" && (
           <div id="master-overview" className="space-y-4">
-            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-5 shadow-2xl shadow-black/20">
+            <div className="q-hero p-5">
               <p className="text-sm text-[var(--q-muted)]">Bem-vindo, {userName}.</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-white">
                 Controle da plataforma
@@ -506,7 +506,7 @@ export default function MasterPage() {
               />
             </div>
 
-            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.86)] p-5">
+            <div className="q-hero p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
                 Receita geral
               </p>
@@ -522,7 +522,7 @@ export default function MasterPage() {
               <button
                 type="button"
                 onClick={() => setActiveSection("new")}
-                className="w-full rounded-2xl bg-emerald-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-emerald-400"
+                className="q-action-primary w-full rounded-2xl px-4 py-4 text-sm font-bold transition"
               >
                 Cadastrar novo restaurante
               </button>
@@ -530,7 +530,7 @@ export default function MasterPage() {
               <button
                 type="button"
                 onClick={() => setActiveSection("restaurants")}
-                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-4 py-4 text-sm font-semibold text-[var(--q-text)] transition hover:border-emerald-500 hover:text-white"
+                className="q-action-secondary w-full rounded-2xl px-4 py-4 text-sm font-semibold transition"
               >
                 Controlar clientes
               </button>
@@ -540,7 +540,7 @@ export default function MasterPage() {
 
         {activeSection === "new" && (
           <div id="master-new" className="space-y-4">
-            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-5">
+            <div className="q-panel p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
                 Novo cliente
               </p>
@@ -558,7 +558,7 @@ export default function MasterPage() {
 
         {activeSection === "restaurants" && (
           <div id="master-restaurants" className="space-y-4">
-            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-5">
+            <div className="q-panel p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
@@ -572,7 +572,7 @@ export default function MasterPage() {
                   </p>
                 </div>
 
-                <span className="shrink-0 rounded-full border border-[color:var(--q-border)] bg-[var(--q-card)] px-3 py-1 text-xs text-[var(--q-text-soft)]">
+                <span className="q-chip shrink-0 px-3 py-1 text-xs font-semibold">
                   {filteredRestaurants.length}/{restaurants.length}
                 </span>
               </div>
@@ -582,7 +582,7 @@ export default function MasterPage() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Buscar por nome, slug ou gerente"
-                className="mt-4 w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg)] px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
+                className="q-input mt-4"
               />
 
               <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -594,10 +594,8 @@ export default function MasterPage() {
                       key={filter.id}
                       type="button"
                       onClick={() => setRestaurantFilter(filter.id)}
-                      className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition ${
-                        active
-                          ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-[color:var(--q-border)] bg-[var(--q-bg)] text-[var(--q-text-soft)]"
+                      className={`q-chip shrink-0 px-4 py-2 text-xs font-semibold ${
+                        active ? "q-chip-active" : ""
                       }`}
                     >
                       {filter.label}
@@ -608,7 +606,7 @@ export default function MasterPage() {
             </div>
 
             {filteredRestaurants.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-8 text-center">
+              <div className="q-panel border-dashed p-8 text-center">
                 <p className="text-sm text-[var(--q-muted)]">
                   Nenhum restaurante encontrado para esse filtro.
                 </p>
@@ -632,7 +630,7 @@ export default function MasterPage() {
                   return (
                     <article
                       key={restaurant.id}
-                      className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.86)] p-4 shadow-xl shadow-black/10"
+                      className="q-panel p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -653,7 +651,7 @@ export default function MasterPage() {
                         </span>
                       </div>
 
-                      <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.70)] p-4">
+                      <div className="q-panel-soft mt-4 p-4">
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--q-dim)]">
                           Gerente
                         </p>
@@ -688,7 +686,7 @@ export default function MasterPage() {
                         />
                       </div>
 
-                      <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.70)] p-4">
+                      <div className="q-panel-soft mt-4 p-4">
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
                             <p className="text-xs text-[var(--q-dim)]">Contas hoje</p>
@@ -724,7 +722,7 @@ export default function MasterPage() {
                             type="button"
                             disabled={isActionLoading}
                             onClick={() => handleRestaurantStatus(restaurant, "ACTIVATE")}
-                            className="w-full rounded-2xl bg-emerald-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-emerald-400 disabled:opacity-60"
+                            className="q-action-primary w-full rounded-2xl px-4 py-4 text-sm font-bold transition disabled:opacity-60"
                           >
                             {isActionLoading ? "Atualizando..." : "Ativar cliente"}
                           </button>
@@ -733,7 +731,7 @@ export default function MasterPage() {
                             type="button"
                             disabled={isActionLoading}
                             onClick={() => handleRestaurantStatus(restaurant, "SUSPEND")}
-                            className="w-full rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-4 text-sm font-bold text-yellow-100 transition hover:border-yellow-300 disabled:opacity-60"
+                            className="q-action-attention w-full rounded-2xl px-4 py-4 text-sm font-bold transition disabled:opacity-60"
                           >
                             {isActionLoading ? "Atualizando..." : "Desativar cliente"}
                           </button>
@@ -743,7 +741,7 @@ export default function MasterPage() {
                           type="button"
                           disabled={isActionLoading}
                           onClick={() => handleRemoveRestaurant(restaurant)}
-                          className="w-full rounded-2xl border border-red-400/30 bg-red-400/10 px-4 py-4 text-sm font-bold text-red-100 transition hover:border-red-300 disabled:opacity-60"
+                          className="q-action-danger w-full rounded-2xl px-4 py-4 text-sm font-bold transition disabled:opacity-60"
                         >
                           {isActionLoading ? "Verificando..." : "Remover seguro"}
                         </button>
@@ -757,8 +755,8 @@ export default function MasterPage() {
         )}
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 py-3 backdrop-blur">
-        <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 text-center text-[11px] font-semibold text-[var(--q-text-soft)]">
+      <nav className="q-bottom-nav fixed inset-x-0 bottom-0 z-40 px-4 py-3">
+        <div className="q-mobile-frame grid grid-cols-3 gap-2 text-center text-[11px]">
           {MASTER_NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.id;
 
@@ -767,10 +765,8 @@ export default function MasterPage() {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveSection(item.id)}
-                className={`rounded-2xl border px-2 py-3 transition ${
-                  isActive
-                    ? "border-emerald-500 bg-emerald-500 text-white"
-                    : "border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] hover:border-emerald-500 hover:text-white"
+                className={`q-bottom-nav-item px-2 py-3 transition ${
+                  isActive ? "q-bottom-nav-item-active" : ""
                 }`}
               >
                 {item.label}

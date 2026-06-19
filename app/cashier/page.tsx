@@ -148,7 +148,7 @@ export default function CashierPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh items-center justify-center overflow-x-hidden bg-[var(--q-bg)] px-4 text-center text-sm text-[var(--q-text-soft)]">
+      <main className="q-page flex min-h-dvh items-center justify-center px-4 text-center text-sm text-[var(--q-text-soft)]">
         Carregando caixa...
       </main>
     );
@@ -159,9 +159,9 @@ export default function CashierPage() {
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-[var(--q-bg)] text-white">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-md items-center justify-between gap-3 px-4">
+    <main className="q-page">
+      <header className="q-topbar fixed inset-x-0 top-0 z-40">
+        <div className="q-mobile-frame flex h-16 items-center justify-between gap-3 px-4">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">
               Caixa
@@ -174,15 +174,15 @@ export default function CashierPage() {
           <Button
             type="button"
             onClick={handleLogout}
-            className="shrink-0 border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-3 py-2 text-xs text-[var(--q-text-soft)] hover:border-emerald-500 hover:bg-[rgba(17,28,24,0.86)] hover:text-white"
+            variant="secondary" size="sm" className="shrink-0"
           >
             Sair
           </Button>
         </div>
       </header>
 
-      <section className="mx-auto w-full max-w-md px-4 pb-28 pt-20">
-        <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-5 shadow-2xl shadow-black/20">
+      <section className="q-mobile-frame px-4 pb-28 pt-20">
+        <div className="q-hero p-5">
           <p className="text-sm text-[var(--q-muted)]">Bem-vindo, {userName}.</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-white">
             Controle do caixa
@@ -193,7 +193,7 @@ export default function CashierPage() {
         </div>
 
         {message && (
-          <div className="mt-4 rounded-2xl border border-orange-400/30 bg-orange-400/10 p-4 text-sm leading-6 text-orange-100">
+          <div className="q-toast mt-4 p-4 text-sm leading-6">
             {message}
           </div>
         )}
@@ -207,23 +207,23 @@ export default function CashierPage() {
         />
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 py-3 backdrop-blur">
-        <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 text-center text-[11px] font-semibold text-[var(--q-text-soft)]">
+      <nav className="q-bottom-nav fixed inset-x-0 bottom-0 z-40 px-4 py-3">
+        <div className="q-mobile-frame grid grid-cols-3 gap-2 text-center text-[11px]">
           <a
             href="#cashier-overview"
-            className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-2 py-3 hover:border-emerald-500 hover:text-white"
+            className="q-bottom-nav-item px-2 py-3"
           >
             Início
           </a>
           <a
             href="#cashier-bills"
-            className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-2 py-3 hover:border-emerald-500 hover:text-white"
+            className="q-bottom-nav-item px-2 py-3"
           >
             Contas
           </a>
           <a
             href="#cashier-tables"
-            className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-2 py-3 hover:border-emerald-500 hover:text-white"
+            className="q-bottom-nav-item px-2 py-3"
           >
             Mesas
           </a>

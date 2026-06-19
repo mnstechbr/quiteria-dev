@@ -141,8 +141,8 @@ export function PublicMenu({
   const [message, setMessage] = useState<string | null>(null);
   const messageTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const primaryColor = safeColor(settings?.primary_color, "#f97316");
-  const secondaryColor = safeColor(settings?.secondary_color, "#111827");
+  const primaryColor = safeColor(settings?.primary_color, "#22c55e");
+  const secondaryColor = safeColor(settings?.secondary_color, "#080d0b");
   const primaryTextColor = getContrastColor(primaryColor);
   const sessionCopy = getSessionCopy(session.status);
   const orderBlocked = session.status === "BILL_REQUESTED";
@@ -301,8 +301,8 @@ export function PublicMenu({
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-[var(--q-bg)] text-white">
-      <section className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-[var(--q-bg)] pb-[calc(104px+env(safe-area-inset-bottom))] shadow-2xl shadow-black/40">
+    <main className="q-page">
+      <section className="q-mobile-frame flex min-h-dvh flex-col pb-[calc(104px+env(safe-area-inset-bottom))] shadow-2xl shadow-black/40">
         <header
           className="shrink-0 overflow-hidden border-b border-[color:var(--q-border)] bg-[var(--q-bg)]"
           style={{ borderColor: `${primaryColor}33` }}
@@ -350,7 +350,7 @@ export function PublicMenu({
                       title: restaurant.name,
                     })
                   }
-                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[var(--q-card)]"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)]"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -360,7 +360,7 @@ export function PublicMenu({
                   />
                 </button>
               ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-[var(--q-card)] text-lg font-black">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] text-lg font-black">
                   {restaurant.name.slice(0, 1).toUpperCase()}
                 </div>
               )}
@@ -381,7 +381,7 @@ export function PublicMenu({
               </div>
             </div>
 
-            <div className="mt-3 rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/25 p-3">
+            <div className="q-panel-soft mt-3 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-bold text-zinc-100">{sessionCopy.title}</p>
                 <span
@@ -398,14 +398,14 @@ export function PublicMenu({
           </div>
         </header>
 
-        <div className="sticky top-0 z-30 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-3 py-3 backdrop-blur-xl">
+        <div className="q-topbar sticky top-0 z-30 px-3 py-3">
           <label className="block">
             <span className="sr-only">Buscar produto</span>
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar no cardápio"
-              className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-sm font-semibold text-white outline-none placeholder:text-[var(--q-dim)] focus:border-emerald-400/50"
+              className="q-input text-sm font-semibold"
             />
           </label>
 
@@ -413,7 +413,7 @@ export function PublicMenu({
             <button
               type="button"
               onClick={() => setActiveCategoryId("all")}
-              className="shrink-0 rounded-full border px-3 py-2 text-xs font-black transition"
+              className="q-chip shrink-0 px-3 py-2 text-xs font-black transition"
               style={
                 activeCategoryId === "all"
                   ? {
@@ -435,7 +435,7 @@ export function PublicMenu({
                   key={category.id}
                   type="button"
                   onClick={() => setActiveCategoryId(category.id)}
-                  className="shrink-0 rounded-full border px-3 py-2 text-xs font-black transition"
+                  className="q-chip shrink-0 px-3 py-2 text-xs font-black transition"
                   style={
                     isActive
                       ? {
@@ -455,7 +455,7 @@ export function PublicMenu({
 
         <div className="flex-1 space-y-5 px-3 py-4">
           {featuredProducts.length > 0 && activeCategoryId === "all" && !searchTerm && (
-            <section className="rounded-[2rem] border border-[color:var(--q-border)] bg-white/[0.035] p-3">
+            <section className="q-panel rounded-[2rem] p-3">
               <div className="mb-3 flex items-center justify-between px-1">
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--q-dim)]">
@@ -474,7 +474,7 @@ export function PublicMenu({
                     key={product.id}
                     type="button"
                     onClick={() => setSelectedProduct(product)}
-                    className="w-36 shrink-0 overflow-hidden rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-card)] text-left"
+                    className="q-panel w-36 shrink-0 overflow-hidden p-0 text-left"
                   >
                     <div className="h-24 w-full bg-zinc-800">
                       {product.image_url ? (
@@ -505,14 +505,14 @@ export function PublicMenu({
           )}
 
           {categoriesWithProducts.length === 0 ? (
-            <div className="rounded-[2rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-6 text-center">
+            <div className="q-panel rounded-[2rem] p-6 text-center">
               <p className="text-base font-black text-white">Cardápio indisponível</p>
               <p className="mt-2 text-sm leading-relaxed text-[var(--q-muted)]">
                 Nenhum produto ativo foi encontrado no momento.
               </p>
             </div>
           ) : visibleCategories.length === 0 ? (
-            <div className="rounded-[2rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-6 text-center">
+            <div className="q-panel rounded-[2rem] p-6 text-center">
               <p className="text-base font-black text-white">Nada encontrado</p>
               <p className="mt-2 text-sm leading-relaxed text-[var(--q-muted)]">
                 Tente buscar por outro nome ou selecione outra categoria.
@@ -542,7 +542,7 @@ export function PublicMenu({
                     return (
                       <article
                         key={product.id}
-                        className="overflow-hidden rounded-[1.75rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)]"
+                        className="q-panel overflow-hidden rounded-[1.75rem] p-0"
                       >
                         <div className="flex gap-3 p-3">
                           <button
@@ -658,14 +658,14 @@ export function PublicMenu({
 
       {message && (
         <div className="fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-50 px-3">
-          <div className="mx-auto max-w-md rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-card)] p-3 text-sm font-semibold leading-relaxed text-zinc-100 shadow-2xl shadow-black/50">
+          <div className="q-toast mx-auto max-w-md p-3 text-sm font-semibold leading-relaxed">
             {message}
           </div>
         </div>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl">
-        <div className="mx-auto max-w-md">
+      <div className="q-bottom-nav fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
+        <div className="q-mobile-frame">
           <button
             type="button"
             onClick={() => setCartOpen(true)}
@@ -701,7 +701,7 @@ export function PublicMenu({
 
       {cartOpen && (
         <div className="fixed inset-0 z-50 flex items-end bg-[var(--q-bg-outer)]/70 px-0 pt-16 backdrop-blur-sm">
-          <div className="mx-auto flex max-h-[86dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-[color:var(--q-border)] bg-[var(--q-bg)] text-white shadow-2xl">
+          <div className="q-mobile-frame flex max-h-[86dvh] flex-col overflow-hidden rounded-t-[2rem] border border-[color:var(--q-border)] bg-[var(--q-bg)] text-white shadow-2xl">
             <div className="shrink-0 border-b border-[color:var(--q-border)] p-4">
               <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20" />
               <div className="flex items-start justify-between gap-3">
@@ -717,7 +717,7 @@ export function PublicMenu({
                 <button
                   type="button"
                   onClick={() => setCartOpen(false)}
-                  className="rounded-2xl border border-[color:var(--q-border)] px-4 py-2 text-sm font-black text-[var(--q-text-soft)]"
+                  className="q-action-secondary rounded-2xl px-4 py-2 text-sm font-black"
                 >
                   Fechar
                 </button>
@@ -726,7 +726,7 @@ export function PublicMenu({
 
             <div className="flex-1 overflow-y-auto px-4 py-3">
               {cart.length === 0 ? (
-                <div className="rounded-[2rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-6 text-center">
+                <div className="q-panel rounded-[2rem] p-6 text-center">
                   <p className="text-base font-black text-white">Carrinho vazio</p>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--q-muted)]">
                     Escolha os produtos no cardápio para montar o pedido.
@@ -737,7 +737,7 @@ export function PublicMenu({
                   {cart.map((item) => (
                     <div
                       key={item.product.id}
-                      className="rounded-[1.5rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3"
+                      className="q-panel rounded-[1.5rem] p-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
@@ -817,14 +817,14 @@ export function PublicMenu({
 
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-end bg-[var(--q-bg-outer)]/70 px-0 pt-16 backdrop-blur-sm">
-          <div className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-[color:var(--q-border)] bg-[var(--q-bg)] text-white shadow-2xl">
+          <div className="q-mobile-frame flex max-h-[90dvh] flex-col overflow-hidden rounded-t-[2rem] border border-[color:var(--q-border)] bg-[var(--q-bg)] text-white shadow-2xl">
             <div className="shrink-0 border-b border-[color:var(--q-border)] p-3">
               <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
               <div className="flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="rounded-2xl border border-[color:var(--q-border)] px-4 py-2 text-sm font-black text-[var(--q-text-soft)]"
+                  className="q-action-secondary rounded-2xl px-4 py-2 text-sm font-black"
                 >
                   Fechar
                 </button>
@@ -893,7 +893,7 @@ export function PublicMenu({
                 </div>
 
                 {selectedProduct.description && (
-                  <p className="mt-4 rounded-[1.5rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4 text-sm leading-relaxed text-[var(--q-text-soft)]">
+                  <p className="q-panel mt-4 rounded-[1.5rem] p-4 text-sm leading-relaxed text-[var(--q-text-soft)]">
                     {selectedProduct.description}
                   </p>
                 )}

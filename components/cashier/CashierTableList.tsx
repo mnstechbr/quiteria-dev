@@ -180,7 +180,7 @@ export function CashierTableList({
 
   return (
     <div className="mt-5 space-y-5" id="cashier-overview">
-      <section className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4">
+      <section className="q-panel p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
@@ -193,28 +193,28 @@ export function CashierTableList({
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-red-400/30 bg-red-400/10 p-4">
+          <div className="q-metric q-metric-red p-4">
             <p className="text-xs text-red-100/80">Contas</p>
             <p className="mt-1 text-2xl font-bold text-white">
               {tableSummary.bill}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-sky-300/30 bg-sky-300/10 p-4">
+          <div className="q-metric q-metric-blue p-4">
             <p className="text-xs text-sky-100/80">Atendimento</p>
             <p className="mt-1 text-2xl font-bold text-white">
               {tableSummary.open}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-yellow-300/30 bg-yellow-300/10 p-4">
+          <div className="q-metric q-metric-yellow p-4">
             <p className="text-xs text-yellow-100/80">Aprovação</p>
             <p className="mt-1 text-2xl font-bold text-white">
               {tableSummary.pending}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-emerald-300/30 bg-emerald-300/10 p-4">
+          <div className="q-metric q-metric-green p-4">
             <p className="text-xs text-emerald-100/80">Livres</p>
             <p className="mt-1 text-2xl font-bold text-white">
               {tableSummary.available}
@@ -222,7 +222,7 @@ export function CashierTableList({
           </div>
         </div>
 
-        <div className="mt-3 rounded-2xl border border-orange-400/30 bg-orange-400/10 p-4">
+        <div className="q-metric q-metric-orange mt-3 p-4">
           <p className="text-xs text-orange-100/80">Consumo ativo</p>
           <p className="mt-1 text-2xl font-bold text-white">
             {formatCurrency(tableSummary.totalConsumption)}
@@ -232,7 +232,7 @@ export function CashierTableList({
 
       <section
         id="cashier-bills"
-        className="scroll-mt-20 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4"
+        className="q-panel scroll-mt-20 p-4"
       >
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
@@ -245,7 +245,7 @@ export function CashierTableList({
         </div>
 
         {bills.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--q-border)] p-6 text-center">
+          <div className="q-panel-soft mt-4 border-dashed p-6 text-center">
             <p className="text-sm text-[var(--q-muted)]">
               Nenhuma conta solicitada no momento.
             </p>
@@ -270,7 +270,7 @@ export function CashierTableList({
               return (
                 <article
                   key={bill.session_id}
-                  className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.70)] p-4"
+                  className="q-panel-soft rounded-3xl p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -289,7 +289,7 @@ export function CashierTableList({
                     {bill.orders.map((order) => (
                       <div
                         key={order.id}
-                        className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-4"
+                        className="q-panel-soft rounded-2xl p-4"
                       >
                         <div className="flex items-center justify-between gap-3 border-b border-[color:var(--q-border)] pb-3">
                           <p className="text-sm font-semibold text-[var(--q-text)]">
@@ -327,7 +327,7 @@ export function CashierTableList({
                     ))}
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-4">
+                  <div className="q-panel-soft mt-4 rounded-2xl p-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm text-[var(--q-muted)]">Subtotal</p>
@@ -353,7 +353,7 @@ export function CashierTableList({
                               event.target.value,
                             )
                           }
-                          className="mt-2 w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg)] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="q-input mt-2 disabled:cursor-not-allowed disabled:opacity-60"
                         />
 
                         {!settings.allowCashierServicePercentEdit && (
@@ -388,7 +388,7 @@ export function CashierTableList({
                           event.target.value,
                         )
                       }
-                      className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg)] px-4 py-3 text-base text-white outline-none focus:border-emerald-500"
+                      className="q-input"
                     >
                       <option value="">Forma de pagamento</option>
                       <option value="PIX">PIX</option>
@@ -420,7 +420,7 @@ export function CashierTableList({
 
       <section
         id="cashier-tables"
-        className="scroll-mt-20 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4"
+        className="q-panel scroll-mt-20 p-4"
       >
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
@@ -438,10 +438,8 @@ export function CashierTableList({
               key={filter.value}
               type="button"
               onClick={() => setTableFilter(filter.value)}
-              className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
-                tableFilter === filter.value
-                  ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "border-[color:var(--q-border)] bg-[rgba(8,13,11,0.80)] text-[var(--q-text-soft)] hover:border-emerald-500 hover:text-white"
+              className={`q-chip px-3 py-3 text-sm font-semibold ${
+                tableFilter === filter.value ? "q-chip-active" : ""
               }`}
             >
               {filter.label}
@@ -450,7 +448,7 @@ export function CashierTableList({
         </div>
 
         {filteredTables.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--q-border)] p-6 text-center">
+          <div className="q-panel-soft mt-4 border-dashed p-6 text-center">
             <p className="text-sm text-[var(--q-muted)]">
               Nenhuma mesa encontrada nesse filtro.
             </p>
@@ -464,7 +462,7 @@ export function CashierTableList({
               return (
                 <article
                   key={table.id}
-                  className={`rounded-3xl border p-4 ${statusInfo.className}`}
+                  className={`q-panel p-4 ${statusInfo.className}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -481,7 +479,7 @@ export function CashierTableList({
                     </span>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/20 p-4">
+                  <div className="q-panel-soft mt-4 p-4">
                     <p className="text-xs opacity-80">Consumo atual</p>
                     <p className="mt-1 text-2xl font-bold text-white">
                       {formatCurrency(consumption)}
