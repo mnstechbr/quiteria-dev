@@ -22,8 +22,8 @@ export function ReadyOrdersList({
 }: ReadyOrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
-        <p className="text-sm text-zinc-400">
+      <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-6 text-center">
+        <p className="text-sm text-[var(--q-muted)]">
           Nenhum pedido pronto para entrega.
         </p>
       </div>
@@ -43,7 +43,7 @@ export function ReadyOrdersList({
                 {order.table_name}
               </p>
 
-              <p className="mt-1 text-xs text-zinc-400">
+              <p className="mt-1 text-xs text-[var(--q-muted)]">
                 Pedido pronto para entrega
               </p>
             </div>
@@ -57,7 +57,7 @@ export function ReadyOrdersList({
             {order.items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/60 p-3"
+                className="flex items-start justify-between gap-3 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.60)] p-3"
               >
                 <div className="min-w-0 flex-1">
                   <p className="break-words text-sm font-medium text-white">
@@ -65,7 +65,7 @@ export function ReadyOrdersList({
                   </p>
 
                   {item.notes && (
-                    <p className="mt-1 break-words text-xs text-zinc-400">
+                    <p className="mt-1 break-words text-xs text-[var(--q-muted)]">
                       Obs: {item.notes}
                     </p>
                   )}

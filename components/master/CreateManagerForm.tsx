@@ -70,23 +70,23 @@ export function CreateManagerForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-4 rounded-3xl border border-white/10 bg-zinc-950/80 p-4"
+      className="mt-4 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.80)] p-4"
     >
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-400">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
           Acesso do gerente
         </p>
         <h4 className="mt-2 text-base font-bold text-white">
           Criar gerente
         </h4>
-        <p className="mt-1 text-sm leading-6 text-zinc-400">
+        <p className="mt-1 text-sm leading-6 text-[var(--q-muted)]">
           Preencha os dados para liberar o acesso administrativo deste restaurante.
         </p>
       </div>
 
       <div className="mt-4 space-y-3">
         <label className="block">
-          <span className="mb-2 block text-sm font-medium text-zinc-300">
+          <span className="mb-2 block text-sm font-medium text-[var(--q-text-soft)]">
             Nome do gerente
           </span>
           <input
@@ -95,12 +95,12 @@ export function CreateManagerForm({
             onChange={(event) => setFullName(event.target.value)}
             placeholder="Ex: João Silva"
             required
-            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+            className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-medium text-zinc-300">
+          <span className="mb-2 block text-sm font-medium text-[var(--q-text-soft)]">
             E-mail do gerente
           </span>
           <input
@@ -109,12 +109,12 @@ export function CreateManagerForm({
             onChange={(event) => setEmail(event.target.value)}
             placeholder="gerente@email.com"
             required
-            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+            className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-sm font-medium text-zinc-300">
+          <span className="mb-2 block text-sm font-medium text-[var(--q-text-soft)]">
             Senha temporária
           </span>
           <input
@@ -123,13 +123,13 @@ export function CreateManagerForm({
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Senha temporária"
             required
-            className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+            className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
           />
         </label>
       </div>
 
       {message && (
-        <p className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-6 text-zinc-300">
+        <p className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm leading-6 text-[var(--q-text-soft)]">
           {message}
         </p>
       )}
@@ -137,7 +137,7 @@ export function CreateManagerForm({
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 w-full rounded-2xl bg-orange-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 w-full rounded-2xl bg-emerald-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Criando gerente..." : "Criar gerente"}
       </button>

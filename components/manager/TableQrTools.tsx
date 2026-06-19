@@ -484,7 +484,7 @@ export function TableQrActions({
         disabled={!onRegenerateQr || hasActiveSession || isRegenerating}
         onClick={() => onRegenerateQr?.(table)}
         title={hasActiveSession ? "Feche a mesa antes de gerar um novo QR Code." : undefined}
-        className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black text-zinc-200 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+        className="min-h-11 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-3 py-2 text-xs font-black text-[var(--q-text)] transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isRegenerating ? "Gerando..." : "Novo QR"}
       </button>
@@ -516,18 +516,18 @@ export function TableQrModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end bg-black/70 px-3 pb-3 pt-12 backdrop-blur-sm sm:items-center sm:justify-center">
-      <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-zinc-950 p-4 shadow-2xl">
+    <div className="fixed inset-0 z-[80] flex items-end bg-[var(--q-bg-outer)]/70 px-3 pb-3 pt-12 backdrop-blur-sm sm:items-center sm:justify-center">
+      <div className="w-full max-w-md rounded-[2rem] border border-[color:var(--q-border)] bg-[var(--q-bg)] p-4 shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-orange-300">QR Code da mesa</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">QR Code da mesa</p>
             <h2 className="mt-1 break-words text-2xl font-black text-white">{table.name}</h2>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/[0.04] text-lg font-black text-zinc-300"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] text-lg font-black text-[var(--q-text-soft)]"
             aria-label="Fechar QR Code"
           >
             ×
@@ -538,9 +538,9 @@ export function TableQrModal({
           <TableQrPreview value={qrUrl} title={table.name} />
         </div>
 
-        <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.04] p-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Link do cardápio</p>
-          <p className="mt-2 break-all text-sm text-zinc-200">{qrUrl}</p>
+        <div className="mt-4 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--q-dim)]">Link do cardápio</p>
+          <p className="mt-2 break-all text-sm text-[var(--q-text)]">{qrUrl}</p>
         </div>
 
         {hasActiveSession && (
@@ -558,7 +558,7 @@ export function TableQrModal({
             <button
               type="button"
               onClick={handleDownloadSvg}
-              className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200"
+              className="min-h-12 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-4 py-3 text-sm font-black text-[var(--q-text)]"
             >
               Baixar SVG
             </button>
@@ -566,7 +566,7 @@ export function TableQrModal({
             <button
               type="button"
               onClick={() => printQrCode(table.name, qrUrl)}
-              className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200"
+              className="min-h-12 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-4 py-3 text-sm font-black text-[var(--q-text)]"
             >
               Imprimir
             </button>

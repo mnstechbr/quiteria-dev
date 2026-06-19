@@ -72,21 +72,21 @@ export function CreateCategoryForm({ onCreated }: CreateCategoryFormProps) {
       </Button>
 
       {message && !open && (
-        <p className="text-xs text-zinc-400 sm:hidden">{message}</p>
+        <p className="text-xs text-[var(--q-muted)] sm:hidden">{message}</p>
       )}
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--q-bg-outer)]/70 p-0">
           <form
             onSubmit={handleSubmit}
-            className="w-full max-w-[480px] rounded-t-3xl border border-white/10 bg-zinc-950 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
+            className="w-full max-w-[480px] rounded-t-3xl border border-[color:var(--q-border)] bg-[var(--q-bg)] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black">
                   Nova Categoria
                 </h2>
-                <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+                <p className="mt-1 text-sm leading-relaxed text-[var(--q-muted)]">
                   Crie categorias para organizar o cardápio.
                 </p>
               </div>
@@ -94,7 +94,7 @@ export function CreateCategoryForm({ onCreated }: CreateCategoryFormProps) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-400 hover:text-white"
+                className="rounded-xl border border-[color:var(--q-border)] px-3 py-2 text-sm text-[var(--q-muted)] hover:text-white"
               >
                 Fechar
               </button>
@@ -107,18 +107,18 @@ export function CreateCategoryForm({ onCreated }: CreateCategoryFormProps) {
               placeholder="Ex: Pizzas"
               required
               autoFocus
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+              className="w-full rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
             />
 
             {message && (
-              <p className="mt-3 text-sm text-zinc-300">{message}</p>
+              <p className="mt-3 text-sm text-[var(--q-text-soft)]">{message}</p>
             )}
 
             <div className="mt-4 space-y-3">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="min-h-12 w-full rounded-2xl border border-white/10 px-4 py-3 text-sm font-black text-zinc-300 hover:text-white"
+                className="min-h-12 w-full rounded-2xl border border-[color:var(--q-border)] px-4 py-3 text-sm font-black text-[var(--q-text-soft)] hover:text-white"
               >
                 Cancelar
               </button>

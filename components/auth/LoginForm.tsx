@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { Button } from "@/components/ui/Button";
 import { useLogin } from "./useLogin";
 
 export function LoginForm() {
@@ -18,24 +19,20 @@ export function LoginForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <label className="block">
-        <span className="mb-2 block text-sm font-semibold text-zinc-300">
-          E-mail
-        </span>
+        <span className="q-label">E-mail</span>
 
         <input
           type="email"
-          placeholder="seu@email.com"
+          placeholder="nome@restaurante.com.br"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
-          className="min-h-12 w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
+          className="q-input"
         />
       </label>
 
       <label className="block">
-        <span className="mb-2 block text-sm font-semibold text-zinc-300">
-          Senha
-        </span>
+        <span className="q-label">Senha</span>
 
         <input
           type="password"
@@ -43,17 +40,13 @@ export function LoginForm() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
-          className="min-h-12 w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-base text-white outline-none transition placeholder:text-zinc-600 focus:border-orange-500"
+          className="q-input"
         />
       </label>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="min-h-12 w-full rounded-2xl bg-orange-500 px-4 py-3 text-base font-black text-white transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" disabled={loading} size="lg" className="w-full">
         {loading ? "Entrando..." : "Entrar"}
-      </button>
+      </Button>
     </form>
   );
 }

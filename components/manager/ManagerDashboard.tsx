@@ -119,7 +119,7 @@ export function ManagerDashboard({ dashboard }: ManagerDashboardProps) {
       detail: "Finalizados pelo garçom",
       className:
         "border-zinc-300/30 bg-zinc-300/10 shadow-[0_0_18px_rgba(212,212,216,0.06)]",
-      valueClassName: "text-zinc-200",
+      valueClassName: "text-[var(--q-text)]",
     },
   ];
 
@@ -130,7 +130,7 @@ export function ManagerDashboard({ dashboard }: ManagerDashboardProps) {
           key={card.label}
           className={`min-w-0 rounded-2xl border p-3 sm:p-5 ${card.className}`}
         >
-          <p className="text-xs leading-tight text-zinc-400 sm:text-sm">
+          <p className="text-xs leading-tight text-[var(--q-muted)] sm:text-sm">
             {card.label}
           </p>
           <p
@@ -138,7 +138,7 @@ export function ManagerDashboard({ dashboard }: ManagerDashboardProps) {
           >
             {card.value}
           </p>
-          <p className="mt-1 text-[11px] leading-tight text-zinc-500 sm:mt-2 sm:text-xs">
+          <p className="mt-1 text-[11px] leading-tight text-[var(--q-dim)] sm:mt-2 sm:text-xs">
             {card.detail}
           </p>
         </div>

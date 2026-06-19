@@ -96,15 +96,15 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
       </Button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--q-bg-outer)]/75 p-0">
           <form
             onSubmit={handleSubmit}
-            className="max-h-[92vh] w-full max-w-[480px] overflow-y-auto rounded-t-3xl border border-white/10 bg-zinc-950 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
+            className="max-h-[92vh] w-full max-w-[480px] overflow-y-auto rounded-t-3xl border border-[color:var(--q-border)] bg-[var(--q-bg)] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black">Novo Produto</h2>
-                <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+                <p className="mt-1 text-sm leading-relaxed text-[var(--q-muted)]">
                   Cadastre produtos usando imagem por URL.
                 </p>
               </div>
@@ -112,7 +112,7 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-400 hover:text-white"
+                className="rounded-xl border border-[color:var(--q-border)] px-3 py-2 text-sm text-[var(--q-muted)] hover:text-white"
               >
                 Fechar
               </button>
@@ -125,7 +125,7 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 required
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
               />
 
               <input
@@ -136,14 +136,14 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
                 required
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
               />
 
               <select
                 value={categoryId}
                 onChange={(event) => setCategoryId(event.target.value)}
                 required
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               >
                 <option value="">Selecione uma categoria</option>
                 {categories.map((category) => (
@@ -156,7 +156,7 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
               <select
                 value={preparationArea}
                 onChange={(event) => setPreparationArea(event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               >
                 <option value="KITCHEN">Cozinha</option>
                 <option value="BAR">Bar</option>
@@ -167,12 +167,12 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
                 placeholder="URL da imagem do produto"
                 value={imageUrl}
                 onChange={(event) => setImageUrl(event.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
               />
             </div>
 
             {imageUrl && (
-              <div className="mt-3 flex gap-3 rounded-2xl border border-white/10 bg-zinc-900 p-2">
+              <div className="mt-3 flex gap-3 rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] p-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imageUrl}
@@ -180,8 +180,8 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
                   className="h-16 w-16 shrink-0 rounded-xl object-cover"
                 />
                 <div className="min-w-0 flex-1 py-1">
-                  <p className="text-xs font-medium text-zinc-300">Prévia da imagem</p>
-                  <p className="mt-1 truncate text-xs text-zinc-500">{imageUrl}</p>
+                  <p className="text-xs font-medium text-[var(--q-text-soft)]">Prévia da imagem</p>
+                  <p className="mt-1 truncate text-xs text-[var(--q-dim)]">{imageUrl}</p>
                 </div>
               </div>
             )}
@@ -190,10 +190,10 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
               placeholder="Descrição"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="mt-3 min-h-[88px] w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+              className="mt-3 min-h-[88px] w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
             />
 
-            <label className="mt-3 flex items-center gap-2 text-sm text-zinc-300">
+            <label className="mt-3 flex items-center gap-2 text-sm text-[var(--q-text-soft)]">
               <input
                 type="checkbox"
                 checked={isFeatured}
@@ -202,7 +202,7 @@ export function CreateProductForm({ categories, onCreated }: CreateProductFormPr
               Produto em destaque
             </label>
 
-            {message && <p className="mt-3 text-sm text-zinc-300">{message}</p>}
+            {message && <p className="mt-3 text-sm text-[var(--q-text-soft)]">{message}</p>}
 
             <Button type="submit" disabled={loading} className="mt-4 min-h-12 w-full rounded-2xl text-sm font-black">
               {loading ? "Criando..." : "Criar Produto"}

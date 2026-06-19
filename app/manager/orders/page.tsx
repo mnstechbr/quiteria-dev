@@ -138,7 +138,7 @@ export default function ManagerOrdersPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--q-bg)] px-6 text-center text-sm text-white">
         Carregando pedidos...
       </main>
     );
@@ -175,7 +175,7 @@ export default function ManagerOrdersPage() {
         }
       >
         {message && (
-          <p className="mb-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-zinc-300">
+          <p className="mb-3 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm text-[var(--q-text-soft)]">
             {message}
           </p>
         )}

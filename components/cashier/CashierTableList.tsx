@@ -180,10 +180,10 @@ export function CashierTableList({
 
   return (
     <div className="mt-5 space-y-5" id="cashier-overview">
-      <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+      <section className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
               Resumo
             </p>
             <h2 className="mt-1 text-xl font-bold text-white">Operação atual</h2>
@@ -232,21 +232,21 @@ export function CashierTableList({
 
       <section
         id="cashier-bills"
-        className="scroll-mt-20 rounded-3xl border border-white/10 bg-white/[0.04] p-4"
+        className="scroll-mt-20 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4"
       >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
             Pagamentos
           </p>
           <h2 className="mt-1 text-xl font-bold text-white">Contas solicitadas</h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">
+          <p className="mt-2 text-sm leading-6 text-[var(--q-muted)]">
             Feche as mesas que já pediram a conta.
           </p>
         </div>
 
         {bills.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-6 text-center">
-            <p className="text-sm text-zinc-400">
+          <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--q-border)] p-6 text-center">
+            <p className="text-sm text-[var(--q-muted)]">
               Nenhuma conta solicitada no momento.
             </p>
           </div>
@@ -270,14 +270,14 @@ export function CashierTableList({
               return (
                 <article
                   key={bill.session_id}
-                  className="rounded-3xl border border-white/10 bg-zinc-950/70 p-4"
+                  className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.70)] p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="break-words text-lg font-bold text-white">
                         {bill.table_name}
                       </h3>
-                      <p className="mt-1 text-sm text-zinc-400">
+                      <p className="mt-1 text-sm text-[var(--q-muted)]">
                         {bill.orders.length} pedido(s) vinculados.
                       </p>
                     </div>
@@ -289,13 +289,13 @@ export function CashierTableList({
                     {bill.orders.map((order) => (
                       <div
                         key={order.id}
-                        className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                        className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-4"
                       >
-                        <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-                          <p className="text-sm font-semibold text-zinc-200">
+                        <div className="flex items-center justify-between gap-3 border-b border-[color:var(--q-border)] pb-3">
+                          <p className="text-sm font-semibold text-[var(--q-text)]">
                             Pedido
                           </p>
-                          <p className="shrink-0 text-sm font-semibold text-zinc-300">
+                          <p className="shrink-0 text-sm font-semibold text-[var(--q-text-soft)]">
                             {formatCurrency(order.total_amount)}
                           </p>
                         </div>
@@ -307,17 +307,17 @@ export function CashierTableList({
                               className="flex items-start justify-between gap-3 text-sm"
                             >
                               <div className="min-w-0">
-                                <p className="break-words text-zinc-200">
+                                <p className="break-words text-[var(--q-text)]">
                                   {item.quantity}x {item.product_name}
                                 </p>
                                 {item.notes && (
-                                  <p className="mt-1 break-words text-xs text-zinc-500">
+                                  <p className="mt-1 break-words text-xs text-[var(--q-dim)]">
                                     Obs: {item.notes}
                                   </p>
                                 )}
                               </div>
 
-                              <p className="shrink-0 text-zinc-300">
+                              <p className="shrink-0 text-[var(--q-text-soft)]">
                                 {formatCurrency(item.total_price)}
                               </p>
                             </div>
@@ -327,17 +327,17 @@ export function CashierTableList({
                     ))}
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-4">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-zinc-400">Subtotal</p>
+                        <p className="text-sm text-[var(--q-muted)]">Subtotal</p>
                         <p className="text-lg font-semibold text-white">
                           {formatCurrency(bill.total_amount)}
                         </p>
                       </div>
 
                       <div>
-                        <label className="text-sm text-zinc-400">
+                        <label className="text-sm text-[var(--q-muted)]">
                           Taxa de serviço (%)
                         </label>
                         <input
@@ -353,27 +353,27 @@ export function CashierTableList({
                               event.target.value,
                             )
                           }
-                          className="mt-2 w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-base text-white outline-none focus:border-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="mt-2 w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg)] px-4 py-3 text-base text-white outline-none focus:border-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
                         />
 
                         {!settings.allowCashierServicePercentEdit && (
-                          <p className="mt-2 text-xs leading-5 text-zinc-500">
+                          <p className="mt-2 text-xs leading-5 text-[var(--q-dim)]">
                             Taxa fixa definida nas configurações do restaurante.
                           </p>
                         )}
                       </div>
 
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-zinc-400">Taxa calculada</p>
+                        <p className="text-sm text-[var(--q-muted)]">Taxa calculada</p>
                         <p className="text-lg font-semibold text-white">
                           {formatCurrency(serviceAmount)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
-                      <p className="text-sm text-zinc-400">Total final</p>
-                      <p className="text-2xl font-bold text-orange-400">
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-[color:var(--q-border)] pt-4">
+                      <p className="text-sm text-[var(--q-muted)]">Total final</p>
+                      <p className="text-2xl font-bold text-emerald-300">
                         {formatCurrency(finalAmount)}
                       </p>
                     </div>
@@ -388,7 +388,7 @@ export function CashierTableList({
                           event.target.value,
                         )
                       }
-                      className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-base text-white outline-none focus:border-orange-500"
+                      className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg)] px-4 py-3 text-base text-white outline-none focus:border-emerald-500"
                     >
                       <option value="">Forma de pagamento</option>
                       <option value="PIX">PIX</option>
@@ -420,14 +420,14 @@ export function CashierTableList({
 
       <section
         id="cashier-tables"
-        className="scroll-mt-20 rounded-3xl border border-white/10 bg-white/[0.04] p-4"
+        className="scroll-mt-20 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4"
       >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
             Mesas
           </p>
           <h2 className="mt-1 text-xl font-bold text-white">Mapa do caixa</h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-400">
+          <p className="mt-2 text-sm leading-6 text-[var(--q-muted)]">
             Visualização de consumo e status em tempo real.
           </p>
         </div>
@@ -440,8 +440,8 @@ export function CashierTableList({
               onClick={() => setTableFilter(filter.value)}
               className={`rounded-2xl border px-3 py-3 text-sm font-semibold transition ${
                 tableFilter === filter.value
-                  ? "border-orange-500 bg-orange-500 text-white"
-                  : "border-white/10 bg-zinc-950/80 text-zinc-300 hover:border-orange-500 hover:text-white"
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-[color:var(--q-border)] bg-[rgba(8,13,11,0.80)] text-[var(--q-text-soft)] hover:border-emerald-500 hover:text-white"
               }`}
             >
               {filter.label}
@@ -450,8 +450,8 @@ export function CashierTableList({
         </div>
 
         {filteredTables.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-6 text-center">
-            <p className="text-sm text-zinc-400">
+          <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--q-border)] p-6 text-center">
+            <p className="text-sm text-[var(--q-muted)]">
               Nenhuma mesa encontrada nesse filtro.
             </p>
           </div>
@@ -476,12 +476,12 @@ export function CashierTableList({
                       </p>
                     </div>
 
-                    <span className="shrink-0 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-xs font-semibold text-white">
+                    <span className="shrink-0 rounded-full border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/20 px-3 py-1 text-xs font-semibold text-white">
                       {statusInfo.shortLabel}
                     </span>
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                  <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/20 p-4">
                     <p className="text-xs opacity-80">Consumo atual</p>
                     <p className="mt-1 text-2xl font-bold text-white">
                       {formatCurrency(consumption)}

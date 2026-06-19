@@ -85,7 +85,7 @@ export default function ManagerSettingsPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--q-bg)] px-6 text-center text-sm text-white">
         Carregando configurações...
       </main>
     );

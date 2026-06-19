@@ -182,8 +182,8 @@ export function ProductList({
 
   if (localProducts.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
-        <p className="text-sm text-zinc-400">Nenhum produto cadastrado ainda.</p>
+      <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-6 text-center">
+        <p className="text-sm text-[var(--q-muted)]">Nenhum produto cadastrado ainda.</p>
       </div>
     );
   }
@@ -191,7 +191,7 @@ export function ProductList({
   return (
     <div className="space-y-3">
       {message && (
-        <p className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-zinc-300">
+        <p className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm text-[var(--q-text-soft)]">
           {message}
         </p>
       )}
@@ -199,10 +199,10 @@ export function ProductList({
       {localProducts.map((product) => (
         <article
           key={product.id}
-          className="w-full overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/70 p-4"
+          className="w-full overflow-hidden rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.72)] p-4"
         >
           <div className="flex items-start gap-3">
-            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg)]">
               {product.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -221,12 +221,12 @@ export function ProductList({
               <p className="break-words text-base font-black leading-tight text-white">
                 {product.name}
               </p>
-              <p className="mt-1 text-base font-black text-orange-300">
+              <p className="mt-1 text-base font-black text-emerald-300">
                 {formatCurrency(product.price)}
               </p>
 
               {product.description && (
-                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-zinc-500">
+                <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[var(--q-dim)]">
                   {product.description}
                 </p>
               )}
@@ -234,7 +234,7 @@ export function ProductList({
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-300">
+            <span className="rounded-full border border-[color:var(--q-border)] px-3 py-1 text-xs text-[var(--q-text-soft)]">
               {product.preparation_area === "BAR" ? "Bar" : "Cozinha"}
             </span>
 
@@ -249,7 +249,7 @@ export function ProductList({
             </span>
 
             {product.is_featured && (
-              <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-400">
+              <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-emerald-300">
                 Destaque
               </span>
             )}
@@ -263,7 +263,7 @@ export function ProductList({
                 setEditingError(null);
                 setEditingProduct(createFormState(product));
               }}
-              className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200 transition active:scale-[0.99]"
+              className="min-h-12 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-4 py-3 text-sm font-black text-[var(--q-text)] transition active:scale-[0.99]"
             >
               Editar
             </button>
@@ -281,15 +281,15 @@ export function ProductList({
       ))}
 
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-[var(--q-bg-outer)]/75 p-0">
           <form
             onSubmit={handleSaveProduct}
-            className="max-h-[92vh] w-full max-w-[480px] overflow-y-auto rounded-t-3xl border border-white/10 bg-zinc-950 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
+            className="max-h-[92vh] w-full max-w-[480px] overflow-y-auto rounded-t-3xl border border-[color:var(--q-border)] bg-[var(--q-bg)] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-white shadow-2xl"
           >
             <div className="mb-4 flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <h3 className="text-xl font-black">Editar produto</h3>
-                <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+                <p className="mt-1 text-sm leading-relaxed text-[var(--q-muted)]">
                   Ajuste informações, preço, foto e disponibilidade.
                 </p>
               </div>
@@ -297,7 +297,7 @@ export function ProductList({
               <button
                 type="button"
                 onClick={() => setEditingProduct(null)}
-                className="shrink-0 rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-400 transition active:scale-95"
+                className="shrink-0 rounded-xl border border-[color:var(--q-border)] px-3 py-2 text-sm text-[var(--q-muted)] transition active:scale-95"
               >
                 Fechar
               </button>
@@ -319,7 +319,7 @@ export function ProductList({
                   )
                 }
                 required
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               />
 
               <input
@@ -333,7 +333,7 @@ export function ProductList({
                   )
                 }
                 required
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               />
 
               <select
@@ -346,7 +346,7 @@ export function ProductList({
                   )
                 }
                 required
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               >
                 <option value="">Selecione uma categoria</option>
                 {categories.map((category) => (
@@ -365,7 +365,7 @@ export function ProductList({
                       : current,
                   )
                 }
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               >
                 <option value="KITCHEN">Cozinha</option>
                 <option value="BAR">Bar</option>
@@ -382,12 +382,12 @@ export function ProductList({
                   )
                 }
                 placeholder="URL da imagem"
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
               />
             </div>
 
             {editingProduct.image_url && (
-              <div className="mt-3 flex gap-3 rounded-2xl border border-white/10 bg-zinc-900 p-2">
+              <div className="mt-3 flex gap-3 rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] p-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={editingProduct.image_url}
@@ -395,10 +395,10 @@ export function ProductList({
                   className="h-16 w-16 shrink-0 rounded-xl object-cover"
                 />
                 <div className="min-w-0 flex-1 py-1">
-                  <p className="text-xs font-medium text-zinc-300">
+                  <p className="text-xs font-medium text-[var(--q-text-soft)]">
                     Prévia da imagem
                   </p>
-                  <p className="mt-1 break-all text-xs text-zinc-500">
+                  <p className="mt-1 break-all text-xs text-[var(--q-dim)]">
                     {editingProduct.image_url}
                   </p>
                 </div>
@@ -415,11 +415,11 @@ export function ProductList({
                 )
               }
               placeholder="Descrição"
-              className="mt-3 min-h-[88px] w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+              className="mt-3 min-h-[88px] w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
             />
 
-            <div className="mt-3 space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-              <label className="flex items-center gap-3 text-sm text-zinc-300">
+            <div className="mt-3 space-y-3 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-3">
+              <label className="flex items-center gap-3 text-sm text-[var(--q-text-soft)]">
                 <input
                   type="checkbox"
                   checked={editingProduct.is_active}
@@ -434,7 +434,7 @@ export function ProductList({
                 Produto ativo
               </label>
 
-              <label className="flex items-center gap-3 text-sm text-zinc-300">
+              <label className="flex items-center gap-3 text-sm text-[var(--q-text-soft)]">
                 <input
                   type="checkbox"
                   checked={editingProduct.is_featured}
@@ -464,7 +464,7 @@ export function ProductList({
               <Button
                 type="button"
                 onClick={() => setEditingProduct(null)}
-                className="min-h-12 w-full rounded-2xl border border-white/10 bg-transparent text-sm font-black text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
+                className="min-h-12 w-full rounded-2xl border border-[color:var(--q-border)] bg-transparent text-sm font-black text-[var(--q-text-soft)] hover:border-emerald-500 hover:bg-transparent hover:text-white"
               >
                 Cancelar
               </Button>

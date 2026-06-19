@@ -301,10 +301,10 @@ export function PublicMenu({
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-white">
-      <section className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-zinc-950 pb-[calc(104px+env(safe-area-inset-bottom))] shadow-2xl shadow-black/40">
+    <main className="min-h-dvh overflow-x-hidden bg-[var(--q-bg)] text-white">
+      <section className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-[var(--q-bg)] pb-[calc(104px+env(safe-area-inset-bottom))] shadow-2xl shadow-black/40">
         <header
-          className="shrink-0 overflow-hidden border-b border-white/10 bg-zinc-950"
+          className="shrink-0 overflow-hidden border-b border-[color:var(--q-border)] bg-[var(--q-bg)]"
           style={{ borderColor: `${primaryColor}33` }}
         >
           {settings?.banner_url ? (
@@ -316,7 +316,7 @@ export function PublicMenu({
                   title: restaurant.name,
                 })
               }
-              className="block h-28 w-full overflow-hidden bg-zinc-900"
+              className="block h-28 w-full overflow-hidden bg-[var(--q-card)]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -350,7 +350,7 @@ export function PublicMenu({
                       title: restaurant.name,
                     })
                   }
-                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-zinc-900"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/15 bg-[var(--q-card)]"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -360,7 +360,7 @@ export function PublicMenu({
                   />
                 </button>
               ) : (
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-zinc-900 text-lg font-black">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-[var(--q-card)] text-lg font-black">
                   {restaurant.name.slice(0, 1).toUpperCase()}
                 </div>
               )}
@@ -375,13 +375,13 @@ export function PublicMenu({
                 <h1 className="break-words text-xl font-black leading-tight tracking-tight">
                   {restaurant.name}
                 </h1>
-                <p className="mt-0.5 text-sm font-semibold text-zinc-300">
+                <p className="mt-0.5 text-sm font-semibold text-[var(--q-text-soft)]">
                   {table.name}
                 </p>
               </div>
             </div>
 
-            <div className="mt-3 rounded-3xl border border-white/10 bg-black/25 p-3">
+            <div className="mt-3 rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/25 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-bold text-zinc-100">{sessionCopy.title}</p>
                 <span
@@ -391,21 +391,21 @@ export function PublicMenu({
                   {cartQuantity} itens
                 </span>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+              <p className="mt-1 text-xs leading-relaxed text-[var(--q-muted)]">
                 {sessionCopy.description}
               </p>
             </div>
           </div>
         </header>
 
-        <div className="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/95 px-3 py-3 backdrop-blur-xl">
+        <div className="sticky top-0 z-30 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-3 py-3 backdrop-blur-xl">
           <label className="block">
             <span className="sr-only">Buscar produto</span>
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar no cardápio"
-              className="w-full rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white outline-none placeholder:text-zinc-500 focus:border-white/25"
+              className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-sm font-semibold text-white outline-none placeholder:text-[var(--q-dim)] focus:border-emerald-400/50"
             />
           </label>
 
@@ -455,15 +455,15 @@ export function PublicMenu({
 
         <div className="flex-1 space-y-5 px-3 py-4">
           {featuredProducts.length > 0 && activeCategoryId === "all" && !searchTerm && (
-            <section className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-3">
+            <section className="rounded-[2rem] border border-[color:var(--q-border)] bg-white/[0.035] p-3">
               <div className="mb-3 flex items-center justify-between px-1">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--q-dim)]">
                     Sugestões
                   </p>
                   <h2 className="text-base font-black text-white">Destaques da casa</h2>
                 </div>
-                <span className="text-[11px] font-semibold text-zinc-500">
+                <span className="text-[11px] font-semibold text-[var(--q-dim)]">
                   {featuredProducts.length} itens
                 </span>
               </div>
@@ -474,7 +474,7 @@ export function PublicMenu({
                     key={product.id}
                     type="button"
                     onClick={() => setSelectedProduct(product)}
-                    className="w-36 shrink-0 overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 text-left"
+                    className="w-36 shrink-0 overflow-hidden rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-card)] text-left"
                   >
                     <div className="h-24 w-full bg-zinc-800">
                       {product.image_url ? (
@@ -505,16 +505,16 @@ export function PublicMenu({
           )}
 
           {categoriesWithProducts.length === 0 ? (
-            <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">
+            <div className="rounded-[2rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-6 text-center">
               <p className="text-base font-black text-white">Cardápio indisponível</p>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-2 text-sm leading-relaxed text-[var(--q-muted)]">
                 Nenhum produto ativo foi encontrado no momento.
               </p>
             </div>
           ) : visibleCategories.length === 0 ? (
-            <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">
+            <div className="rounded-[2rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-6 text-center">
               <p className="text-base font-black text-white">Nada encontrado</p>
-              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+              <p className="mt-2 text-sm leading-relaxed text-[var(--q-muted)]">
                 Tente buscar por outro nome ou selecione outra categoria.
               </p>
             </div>
@@ -523,14 +523,14 @@ export function PublicMenu({
               <section key={category.id} className="scroll-mt-32">
                 <div className="mb-3 flex items-end justify-between gap-3 px-1">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--q-dim)]">
                       Categoria
                     </p>
                     <h2 className="break-words text-lg font-black text-white">
                       {category.name}
                     </h2>
                   </div>
-                  <span className="shrink-0 text-[11px] font-semibold text-zinc-500">
+                  <span className="shrink-0 text-[11px] font-semibold text-[var(--q-dim)]">
                     {category.products.length} itens
                   </span>
                 </div>
@@ -542,7 +542,7 @@ export function PublicMenu({
                     return (
                       <article
                         key={product.id}
-                        className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.04]"
+                        className="overflow-hidden rounded-[1.75rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)]"
                       >
                         <div className="flex gap-3 p-3">
                           <button
@@ -555,7 +555,7 @@ export function PublicMenu({
                                   })
                                 : setSelectedProduct(product)
                             }
-                            className="h-24 w-24 shrink-0 overflow-hidden rounded-3xl border border-white/10 bg-zinc-900"
+                            className="h-24 w-24 shrink-0 overflow-hidden rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-card)]"
                           >
                             {product.image_url ? (
                               // eslint-disable-next-line @next/next/no-img-element
@@ -594,7 +594,7 @@ export function PublicMenu({
                             </div>
 
                             {product.description && (
-                              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-zinc-500">
+                              <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[var(--q-dim)]">
                                 {product.description}
                               </p>
                             )}
@@ -608,8 +608,8 @@ export function PublicMenu({
                           </button>
                         </div>
 
-                        <div className="flex items-center justify-between gap-3 border-t border-white/10 px-3 py-2.5">
-                          <span className="text-xs font-semibold text-zinc-500">
+                        <div className="flex items-center justify-between gap-3 border-t border-[color:var(--q-border)] px-3 py-2.5">
+                          <span className="text-xs font-semibold text-[var(--q-dim)]">
                             {quantity > 0 ? `${quantity} no carrinho` : "Adicionar ao pedido"}
                           </span>
 
@@ -618,7 +618,7 @@ export function PublicMenu({
                               <button
                                 type="button"
                                 onClick={() => changeQuantity(product.id, quantity - 1)}
-                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-lg font-black text-zinc-200"
+                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[color:var(--q-border)] text-lg font-black text-[var(--q-text)]"
                               >
                                 -
                               </button>
@@ -658,13 +658,13 @@ export function PublicMenu({
 
       {message && (
         <div className="fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-50 px-3">
-          <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-zinc-900 p-3 text-sm font-semibold leading-relaxed text-zinc-100 shadow-2xl shadow-black/50">
+          <div className="mx-auto max-w-md rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-card)] p-3 text-sm font-semibold leading-relaxed text-zinc-100 shadow-2xl shadow-black/50">
             {message}
           </div>
         </div>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-zinc-950/95 px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-3 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl">
         <div className="mx-auto max-w-md">
           <button
             type="button"
@@ -700,24 +700,24 @@ export function PublicMenu({
       </div>
 
       {cartOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/70 px-0 pt-16 backdrop-blur-sm">
-          <div className="mx-auto flex max-h-[86dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-zinc-950 text-white shadow-2xl">
-            <div className="shrink-0 border-b border-white/10 p-4">
+        <div className="fixed inset-0 z-50 flex items-end bg-[var(--q-bg-outer)]/70 px-0 pt-16 backdrop-blur-sm">
+          <div className="mx-auto flex max-h-[86dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-[color:var(--q-border)] bg-[var(--q-bg)] text-white shadow-2xl">
+            <div className="shrink-0 border-b border-[color:var(--q-border)] p-4">
               <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20" />
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500">
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--q-dim)]">
                     Conferência
                   </p>
                   <h2 className="text-xl font-black">Seu carrinho</h2>
-                  <p className="mt-1 text-sm text-zinc-400">
+                  <p className="mt-1 text-sm text-[var(--q-muted)]">
                     {cartQuantity} {cartQuantity === 1 ? "item" : "itens"} no pedido
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setCartOpen(false)}
-                  className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-zinc-300"
+                  className="rounded-2xl border border-[color:var(--q-border)] px-4 py-2 text-sm font-black text-[var(--q-text-soft)]"
                 >
                   Fechar
                 </button>
@@ -726,9 +726,9 @@ export function PublicMenu({
 
             <div className="flex-1 overflow-y-auto px-4 py-3">
               {cart.length === 0 ? (
-                <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">
+                <div className="rounded-[2rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-6 text-center">
                   <p className="text-base font-black text-white">Carrinho vazio</p>
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--q-muted)]">
                     Escolha os produtos no cardápio para montar o pedido.
                   </p>
                 </div>
@@ -737,14 +737,14 @@ export function PublicMenu({
                   {cart.map((item) => (
                     <div
                       key={item.product.id}
-                      className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-3"
+                      className="rounded-[1.5rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="break-words text-sm font-black text-zinc-100">
                             {item.product.name}
                           </p>
-                          <p className="mt-1 text-xs font-semibold text-zinc-500">
+                          <p className="mt-1 text-xs font-semibold text-[var(--q-dim)]">
                             {formatCurrency(item.product.price)} cada
                           </p>
                         </div>
@@ -757,7 +757,7 @@ export function PublicMenu({
                         <button
                           type="button"
                           onClick={() => changeQuantity(item.product.id, 0)}
-                          className="text-xs font-black text-zinc-500 underline underline-offset-4"
+                          className="text-xs font-black text-[var(--q-dim)] underline underline-offset-4"
                         >
                           Remover
                         </button>
@@ -766,7 +766,7 @@ export function PublicMenu({
                           <button
                             type="button"
                             onClick={() => changeQuantity(item.product.id, item.quantity - 1)}
-                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-lg font-black text-zinc-200"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[color:var(--q-border)] text-lg font-black text-[var(--q-text)]"
                           >
                             -
                           </button>
@@ -789,8 +789,8 @@ export function PublicMenu({
               )}
             </div>
 
-            <div className="shrink-0 border-t border-white/10 p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
-              <div className="mb-3 flex items-center justify-between text-sm font-semibold text-zinc-300">
+            <div className="shrink-0 border-t border-[color:var(--q-border)] p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+              <div className="mb-3 flex items-center justify-between text-sm font-semibold text-[var(--q-text-soft)]">
                 <span>Total do pedido</span>
                 <span className="text-2xl font-black text-white">
                   {formatCurrency(cartTotal)}
@@ -816,15 +816,15 @@ export function PublicMenu({
       )}
 
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/70 px-0 pt-16 backdrop-blur-sm">
-          <div className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-zinc-950 text-white shadow-2xl">
-            <div className="shrink-0 border-b border-white/10 p-3">
+        <div className="fixed inset-0 z-50 flex items-end bg-[var(--q-bg-outer)]/70 px-0 pt-16 backdrop-blur-sm">
+          <div className="mx-auto flex max-h-[90dvh] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] border border-[color:var(--q-border)] bg-[var(--q-bg)] text-white shadow-2xl">
+            <div className="shrink-0 border-b border-[color:var(--q-border)] p-3">
               <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-white/20" />
               <div className="flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-zinc-300"
+                  className="rounded-2xl border border-[color:var(--q-border)] px-4 py-2 text-sm font-black text-[var(--q-text-soft)]"
                 >
                   Fechar
                 </button>
@@ -852,7 +852,7 @@ export function PublicMenu({
                       })
                     : undefined
                 }
-                className="block h-72 w-full overflow-hidden bg-zinc-900"
+                className="block h-72 w-full overflow-hidden bg-[var(--q-card)]"
               >
                 {selectedProduct.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -893,7 +893,7 @@ export function PublicMenu({
                 </div>
 
                 {selectedProduct.description && (
-                  <p className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 text-sm leading-relaxed text-zinc-300">
+                  <p className="mt-4 rounded-[1.5rem] border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4 text-sm leading-relaxed text-[var(--q-text-soft)]">
                     {selectedProduct.description}
                   </p>
                 )}
@@ -904,16 +904,16 @@ export function PublicMenu({
       )}
 
       {fullscreenImage && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--q-bg-outer)]/95 p-4">
           <button
             type="button"
             onClick={() => setFullscreenImage(null)}
-            className="absolute right-4 top-4 z-10 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur"
+            className="absolute right-4 top-4 z-10 rounded-full border border-[color:var(--q-border)] bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur"
           >
             Fechar
           </button>
 
-          <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950">
+          <div className="w-full max-w-3xl overflow-hidden rounded-3xl border border-[color:var(--q-border)] bg-[var(--q-bg)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={fullscreenImage.url}

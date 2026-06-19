@@ -228,7 +228,7 @@ export default function BarPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh items-center justify-center bg-zinc-950 px-6 text-center text-sm font-semibold text-white">
+      <main className="flex min-h-dvh items-center justify-center bg-[var(--q-bg)] px-6 text-center text-sm font-semibold text-white">
         Carregando bar...
       </main>
     );
@@ -239,12 +239,12 @@ export default function BarPage() {
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-white">
+    <main className="min-h-dvh overflow-x-hidden bg-[var(--q-bg)] text-white">
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col pb-28">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/95 px-4 pb-3 pt-4 backdrop-blur">
+        <header className="sticky top-0 z-30 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 pb-3 pt-4 backdrop-blur">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-300">
+              <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
                 Quitéria
               </p>
 
@@ -252,7 +252,7 @@ export default function BarPage() {
                 Bar
               </h1>
 
-              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-400">
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--q-muted)]">
                 Bebidas e drinks aprovados para preparo.
               </p>
             </div>
@@ -260,7 +260,7 @@ export default function BarPage() {
             <button
               type="button"
               onClick={handleLogout}
-              className="shrink-0 rounded-2xl border border-white/10 px-3 py-2 text-xs font-bold text-zinc-300 active:scale-[0.98]"
+              className="shrink-0 rounded-2xl border border-[color:var(--q-border)] px-3 py-2 text-xs font-bold text-[var(--q-text-soft)] active:scale-[0.98]"
             >
               Sair
             </button>
@@ -269,7 +269,7 @@ export default function BarPage() {
 
         <section className="flex-1 space-y-4 px-4 py-4">
           {message && (
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-sm leading-relaxed text-zinc-300">
+            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4 text-sm leading-relaxed text-[var(--q-text-soft)]">
               {message}
             </div>
           )}
@@ -312,12 +312,12 @@ export default function BarPage() {
             </div>
           </section>
 
-          <div className="flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-3">
+          <div className="flex items-center justify-between gap-3 rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3">
             <div className="min-w-0">
               <p className="text-sm font-black text-white">
                 {activeTabConfig.label}
               </p>
-              <p className="mt-0.5 text-xs text-zinc-500">
+              <p className="mt-0.5 text-xs text-[var(--q-dim)]">
                 {visibleOrders.length} pedido(s) visível(is)
               </p>
             </div>
@@ -326,7 +326,7 @@ export default function BarPage() {
               type="button"
               disabled={refreshing}
               onClick={refreshOrders}
-              className="min-h-11 shrink-0 rounded-2xl border border-white/10 px-4 text-xs font-black text-zinc-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-11 shrink-0 rounded-2xl border border-[color:var(--q-border)] px-4 text-xs font-black text-[var(--q-text)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {refreshing ? "Atualizando..." : "Atualizar"}
             </button>
@@ -345,7 +345,7 @@ export default function BarPage() {
           />
         </section>
 
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-zinc-950/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 backdrop-blur">
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 backdrop-blur">
           <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
             {BAR_TABS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -357,8 +357,8 @@ export default function BarPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`min-h-14 rounded-2xl px-2 text-xs font-black transition active:scale-[0.98] ${
                     isActive
-                      ? "bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.25)]"
-                      : "border border-white/10 bg-white/[0.04] text-zinc-400"
+                      ? "bg-emerald-500 text-white shadow-[0_0_20px_rgba(34,197,94,0.20)]"
+                      : "border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] text-[var(--q-muted)]"
                   }`}
                 >
                   {tab.shortLabel}

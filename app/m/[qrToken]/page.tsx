@@ -108,7 +108,7 @@ export default function PublicMenuPage({ params }: PublicMenuPageProps) {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--q-bg)] px-6 text-white">
         Carregando cardápio...
       </main>
     );
@@ -116,10 +116,10 @@ export default function PublicMenuPage({ params }: PublicMenuPageProps) {
 
   if (errorMessage || !menuData) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-white">
-        <div className="max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-6 text-center">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--q-bg)] px-6 text-white">
+        <div className="max-w-md rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-6 text-center">
           <p className="text-lg font-semibold">Não foi possível abrir o cardápio.</p>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-[var(--q-muted)]">
             {errorMessage ?? "Tente escanear o QR Code novamente."}
           </p>
         </div>

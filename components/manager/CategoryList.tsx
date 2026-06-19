@@ -77,8 +77,8 @@ export function CategoryList({ categories, onDeleted }: CategoryListProps) {
 
   if (localCategories.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
-        <p className="text-sm text-zinc-400">Nenhuma categoria cadastrada.</p>
+      <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-6 text-center">
+        <p className="text-sm text-[var(--q-muted)]">Nenhuma categoria cadastrada.</p>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export function CategoryList({ categories, onDeleted }: CategoryListProps) {
   return (
     <div className="space-y-3">
       {message && (
-        <p className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-relaxed text-zinc-300">
+        <p className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm leading-relaxed text-[var(--q-text-soft)]">
           {message}
         </p>
       )}
@@ -94,14 +94,14 @@ export function CategoryList({ categories, onDeleted }: CategoryListProps) {
       {localCategories.map((category) => (
         <article
           key={category.id}
-          className="w-full rounded-3xl border border-white/10 bg-zinc-900/70 p-4"
+          className="w-full rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.72)] p-4"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="break-words text-base font-black leading-tight text-white">
                 {category.name}
               </p>
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-[var(--q-dim)]">
                 Ordem: {category.sort_order ?? "-"}
               </p>
             </div>

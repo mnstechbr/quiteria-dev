@@ -82,10 +82,10 @@ export function WaiterTableGrid({
               <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${statusInfo.dot}`} />
             </div>
 
-            <div className="mt-4 rounded-2xl border border-white/10 bg-zinc-950/40 p-3">
+            <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.42)] p-3">
               <div className="flex items-center justify-between gap-3 text-xs">
-                <span className="text-zinc-500">Status</span>
-                <span className="font-semibold text-zinc-200">
+                <span className="text-[var(--q-dim)]">Status</span>
+                <span className="font-semibold text-[var(--q-text)]">
                   {table.is_active ? "Mesa ativa" : "Mesa inativa"}
                 </span>
               </div>

@@ -161,7 +161,7 @@ function MetricCard({
   tone?: "default" | "green" | "orange" | "yellow" | "red";
 }) {
   const toneClass = {
-    default: "border-white/10 bg-zinc-900/80 text-white",
+    default: "border-[color:var(--q-border)] bg-[rgba(17,28,24,0.86)] text-white",
     green: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
     orange: "border-orange-300/30 bg-orange-300/10 text-orange-100",
     yellow: "border-yellow-300/30 bg-yellow-300/10 text-yellow-100",
@@ -396,7 +396,7 @@ export default function MasterPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh items-center justify-center overflow-x-hidden bg-zinc-950 px-4 text-center text-sm text-zinc-300">
+      <main className="flex min-h-dvh items-center justify-center overflow-x-hidden bg-[var(--q-bg)] px-4 text-center text-sm text-[var(--q-text-soft)]">
         Carregando painel master...
       </main>
     );
@@ -407,11 +407,11 @@ export default function MasterPage() {
   }
 
   return (
-    <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-white">
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-zinc-950/95 backdrop-blur">
+    <main className="min-h-dvh overflow-x-hidden bg-[var(--q-bg)] text-white">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-md items-center justify-between gap-3 px-4">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">
               Master
             </p>
             <h1 className="truncate text-lg font-bold leading-tight text-white">
@@ -424,14 +424,14 @@ export default function MasterPage() {
               type="button"
               onClick={refreshDashboard}
               disabled={refreshing}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-orange-500 hover:text-white disabled:opacity-60"
+              className="rounded-xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-3 py-2 text-xs font-semibold text-[var(--q-text-soft)] transition hover:border-emerald-500 hover:text-white disabled:opacity-60"
             >
               {refreshing ? "..." : "Atualizar"}
             </button>
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-zinc-300 transition hover:border-orange-500 hover:bg-white/[0.06] hover:text-white"
+              className="rounded-xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-3 py-2 text-xs font-semibold text-[var(--q-text-soft)] transition hover:border-emerald-500 hover:bg-[rgba(17,28,24,0.86)] hover:text-white"
             >
               Sair
             </button>
@@ -441,19 +441,19 @@ export default function MasterPage() {
 
       <section className="mx-auto w-full max-w-md px-4 pb-28 pt-20">
         {message && (
-          <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-6 text-zinc-300">
+          <div className="mb-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm leading-6 text-[var(--q-text-soft)]">
             {message}
           </div>
         )}
 
         {activeSection === "overview" && (
           <div id="master-overview" className="space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl shadow-black/20">
-              <p className="text-sm text-zinc-400">Bem-vindo, {userName}.</p>
+            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-5 shadow-2xl shadow-black/20">
+              <p className="text-sm text-[var(--q-muted)]">Bem-vindo, {userName}.</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-white">
                 Controle da plataforma
               </h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <p className="mt-2 text-sm leading-6 text-[var(--q-muted)]">
                 Acompanhe clientes, movimento, faturamento, cadastros e acessos dos restaurantes.
               </p>
             </div>
@@ -506,14 +506,14 @@ export default function MasterPage() {
               />
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-zinc-900/80 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-400">
+            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.86)] p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
                 Receita geral
               </p>
               <p className="mt-2 text-3xl font-black text-white">
                 {formatMoney(platform?.revenue_total ?? 0)}
               </p>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <p className="mt-2 text-sm leading-6 text-[var(--q-muted)]">
                 Soma das contas fechadas registradas na plataforma.
               </p>
             </div>
@@ -522,7 +522,7 @@ export default function MasterPage() {
               <button
                 type="button"
                 onClick={() => setActiveSection("new")}
-                className="w-full rounded-2xl bg-orange-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-orange-400"
+                className="w-full rounded-2xl bg-emerald-500 px-4 py-4 text-sm font-bold text-white transition hover:bg-emerald-400"
               >
                 Cadastrar novo restaurante
               </button>
@@ -530,7 +530,7 @@ export default function MasterPage() {
               <button
                 type="button"
                 onClick={() => setActiveSection("restaurants")}
-                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm font-semibold text-zinc-200 transition hover:border-orange-500 hover:text-white"
+                className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-4 py-4 text-sm font-semibold text-[var(--q-text)] transition hover:border-emerald-500 hover:text-white"
               >
                 Controlar clientes
               </button>
@@ -540,14 +540,14 @@ export default function MasterPage() {
 
         {activeSection === "new" && (
           <div id="master-new" className="space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-400">
+            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
                 Novo cliente
               </p>
               <h2 className="mt-2 text-2xl font-bold text-white">
                 Cadastrar restaurante
               </h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <p className="mt-2 text-sm leading-6 text-[var(--q-muted)]">
                 Após criar o restaurante, ele recebe mesas, categorias e configurações padrão.
               </p>
             </div>
@@ -558,21 +558,21 @@ export default function MasterPage() {
 
         {activeSection === "restaurants" && (
           <div id="master-restaurants" className="space-y-4">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
+            <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
                     Clientes
                   </p>
                   <h2 className="mt-2 text-2xl font-bold text-white">
                     Restaurantes
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-zinc-400">
+                  <p className="mt-2 text-sm leading-6 text-[var(--q-muted)]">
                     Ative, desative, remova com segurança e acompanhe estatísticas por cliente.
                   </p>
                 </div>
 
-                <span className="shrink-0 rounded-full border border-white/10 bg-zinc-900 px-3 py-1 text-xs text-zinc-300">
+                <span className="shrink-0 rounded-full border border-[color:var(--q-border)] bg-[var(--q-card)] px-3 py-1 text-xs text-[var(--q-text-soft)]">
                   {filteredRestaurants.length}/{restaurants.length}
                 </span>
               </div>
@@ -582,7 +582,7 @@ export default function MasterPage() {
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Buscar por nome, slug ou gerente"
-                className="mt-4 w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-orange-500"
+                className="mt-4 w-full rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg)] px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 focus:border-emerald-500"
               />
 
               <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -596,8 +596,8 @@ export default function MasterPage() {
                       onClick={() => setRestaurantFilter(filter.id)}
                       className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition ${
                         active
-                          ? "border-orange-500 bg-orange-500 text-white"
-                          : "border-white/10 bg-zinc-950 text-zinc-300"
+                          ? "border-emerald-500 bg-emerald-500 text-white"
+                          : "border-[color:var(--q-border)] bg-[var(--q-bg)] text-[var(--q-text-soft)]"
                       }`}
                     >
                       {filter.label}
@@ -608,8 +608,8 @@ export default function MasterPage() {
             </div>
 
             {filteredRestaurants.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-8 text-center">
-                <p className="text-sm text-zinc-400">
+              <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-8 text-center">
+                <p className="text-sm text-[var(--q-muted)]">
                   Nenhum restaurante encontrado para esse filtro.
                 </p>
                 <button
@@ -618,7 +618,7 @@ export default function MasterPage() {
                     setSearchTerm("");
                     setRestaurantFilter("all");
                   }}
-                  className="mt-4 w-full rounded-2xl bg-orange-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-orange-400"
+                  className="mt-4 w-full rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-400"
                 >
                   Limpar filtros
                 </button>
@@ -632,14 +632,14 @@ export default function MasterPage() {
                   return (
                     <article
                       key={restaurant.id}
-                      className="rounded-3xl border border-white/10 bg-zinc-900/80 p-4 shadow-xl shadow-black/10"
+                      className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.86)] p-4 shadow-xl shadow-black/10"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h3 className="break-words text-lg font-bold text-white">
                             {restaurant.name}
                           </h3>
-                          <p className="mt-1 break-all text-sm text-zinc-500">
+                          <p className="mt-1 break-all text-sm text-[var(--q-dim)]">
                             /{restaurant.slug}
                           </p>
                         </div>
@@ -653,11 +653,11 @@ export default function MasterPage() {
                         </span>
                       </div>
 
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-zinc-950/70 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                      <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.70)] p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--q-dim)]">
                           Gerente
                         </p>
-                        <p className="mt-2 break-all text-sm text-zinc-300">
+                        <p className="mt-2 break-all text-sm text-[var(--q-text-soft)]">
                           {restaurant.manager_email ?? "Nenhum gerente cadastrado"}
                         </p>
                       </div>
@@ -688,22 +688,22 @@ export default function MasterPage() {
                         />
                       </div>
 
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-zinc-950/70 p-4">
+                      <div className="mt-4 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.70)] p-4">
                         <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
-                            <p className="text-xs text-zinc-500">Contas hoje</p>
+                            <p className="text-xs text-[var(--q-dim)]">Contas hoje</p>
                             <p className="mt-1 font-semibold text-white">
                               {formatInteger(restaurant.stats.closed_accounts_today)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-zinc-500">Ticket médio</p>
+                            <p className="text-xs text-[var(--q-dim)]">Ticket médio</p>
                             <p className="mt-1 font-semibold text-white">
                               {formatMoney(restaurant.stats.average_ticket_today)}
                             </p>
                           </div>
                           <div className="col-span-2">
-                            <p className="text-xs text-zinc-500">Último pedido</p>
+                            <p className="text-xs text-[var(--q-dim)]">Último pedido</p>
                             <p className="mt-1 font-semibold text-white">
                               {formatDateTime(restaurant.stats.last_order_at)}
                             </p>
@@ -757,8 +757,8 @@ export default function MasterPage() {
         )}
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-zinc-950/95 px-4 py-3 backdrop-blur">
-        <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 text-center text-[11px] font-semibold text-zinc-300">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 py-3 backdrop-blur">
+        <div className="mx-auto grid w-full max-w-md grid-cols-3 gap-2 text-center text-[11px] font-semibold text-[var(--q-text-soft)]">
           {MASTER_NAV_ITEMS.map((item) => {
             const isActive = activeSection === item.id;
 
@@ -769,8 +769,8 @@ export default function MasterPage() {
                 onClick={() => setActiveSection(item.id)}
                 className={`rounded-2xl border px-2 py-3 transition ${
                   isActive
-                    ? "border-orange-500 bg-orange-500 text-white"
-                    : "border-white/10 bg-white/[0.04] hover:border-orange-500 hover:text-white"
+                    ? "border-emerald-500 bg-emerald-500 text-white"
+                    : "border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] hover:border-emerald-500 hover:text-white"
                 }`}
               >
                 {item.label}

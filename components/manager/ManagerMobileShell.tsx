@@ -14,12 +14,12 @@ type ManagerMobileShellProps = {
 };
 
 const MANAGER_NAV_ITEMS = [
-  { href: "/manager", label: "Início", icon: "🏠" },
-  { href: "/manager/tables", label: "Mesas", icon: "🪑" },
-  { href: "/manager/orders", label: "Pedidos", icon: "📋" },
-  { href: "/manager/products", label: "Itens", icon: "🍔" },
-  { href: "/manager/categories", label: "Cat.", icon: "📂" },
-  { href: "/manager/settings", label: "Config", icon: "⚙️" },
+  { href: "/manager", label: "Início", icon: "IN" },
+  { href: "/manager/tables", label: "Mesas", icon: "ME" },
+  { href: "/manager/orders", label: "Pedidos", icon: "PD" },
+  { href: "/manager/products", label: "Itens", icon: "IT" },
+  { href: "/manager/categories", label: "Cat.", icon: "CT" },
+  { href: "/manager/settings", label: "Config", icon: "CF" },
 ];
 
 export function ManagerMobileShell({
@@ -31,14 +31,14 @@ export function ManagerMobileShell({
   onLogout,
 }: ManagerMobileShellProps) {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-black text-white">
-      <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-zinc-950">
-        <header className="sticky top-0 z-40 border-b border-white/10 bg-zinc-950/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--q-bg-outer)] text-white">
+      <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-[var(--q-bg)]">
+        <header className="sticky top-0 z-40 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <Link
                 href="/manager"
-                className="inline-flex rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] font-bold text-orange-300 transition active:scale-95"
+                className="inline-flex rounded-full border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] px-3 py-1.5 text-[11px] font-bold text-emerald-300 transition active:scale-95"
               >
                 ← Painel
               </Link>
@@ -47,7 +47,7 @@ export function ManagerMobileShell({
                 {title}
               </h1>
 
-              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-400">
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--q-muted)]">
                 {description}
               </p>
             </div>
@@ -56,7 +56,7 @@ export function ManagerMobileShell({
               <Button
                 type="button"
                 onClick={onLogout}
-                className="shrink-0 border border-white/10 bg-transparent px-3 py-2 text-xs text-zinc-300 hover:border-orange-500 hover:bg-transparent hover:text-white"
+                className="shrink-0 border border-[color:var(--q-border)] bg-transparent px-3 py-2 text-xs text-[var(--q-text-soft)] hover:border-emerald-500 hover:bg-transparent hover:text-white"
               >
                 Sair
               </Button>
@@ -70,7 +70,7 @@ export function ManagerMobileShell({
           {children}
         </section>
 
-        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-white/10 bg-zinc-950/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
+        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
           <div className="grid grid-cols-6 gap-1">
             {MANAGER_NAV_ITEMS.map((item) => {
               const isActive = activeHref === item.href;
@@ -82,8 +82,8 @@ export function ManagerMobileShell({
                   aria-current={isActive ? "page" : undefined}
                   className={`min-w-0 rounded-2xl px-1 py-2 text-center text-[10px] font-semibold transition active:scale-95 ${
                     isActive
-                      ? "bg-orange-500 text-white shadow-[0_0_18px_rgba(249,115,22,0.22)]"
-                      : "text-zinc-400"
+                      ? "bg-emerald-500 text-white shadow-[0_0_18px_rgba(34,197,94,0.20)]"
+                      : "text-[var(--q-muted)]"
                   }`}
                 >
                   <span className="block text-base leading-none">{item.icon}</span>
@@ -112,12 +112,12 @@ export function MobileSectionCard({
   children?: ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+    <section className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-black leading-tight text-white">{title}</h2>
           {description && (
-            <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+            <p className="mt-1 text-sm leading-relaxed text-[var(--q-muted)]">
               {description}
             </p>
           )}
@@ -139,8 +139,8 @@ export function MobileMetricCard({
   value: number | string;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-      <p className="truncate text-xs text-zinc-400">{label}</p>
+    <div className="min-w-0 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3">
+      <p className="truncate text-xs text-[var(--q-muted)]">{label}</p>
       <p className="mt-1 truncate text-xl font-black text-white">{value}</p>
     </div>
   );
@@ -148,7 +148,7 @@ export function MobileMetricCard({
 
 export function MobileMessage({ message }: { message: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm leading-relaxed text-zinc-300">
+    <div className="rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm leading-relaxed text-[var(--q-text-soft)]">
       {message}
     </div>
   );

@@ -116,55 +116,55 @@ export function ManagerSettingsForm({
       <Card>
         <div className="mb-4">
           <h2 className="text-lg font-black">Restaurante</h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--q-muted)]">
             Informações principais exibidas no sistema e no cardápio.
           </p>
         </div>
 
         <div className="space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">
+            <span className="mb-2 block text-sm text-[var(--q-text-soft)]">
               Nome do restaurante
             </span>
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+              className="w-full rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               required
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">Slug</span>
+            <span className="mb-2 block text-sm text-[var(--q-text-soft)]">Slug</span>
             <input
               value={slug}
               onChange={(event) => setSlug(event.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+              className="w-full rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               required
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">
+            <span className="mb-2 block text-sm text-[var(--q-text-soft)]">
               URL do logo
             </span>
             <input
               value={logoUrl}
               onChange={(event) => setLogoUrl(event.target.value)}
               placeholder="https://..."
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+              className="w-full rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
             />
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">
+            <span className="mb-2 block text-sm text-[var(--q-text-soft)]">
               URL do banner
             </span>
             <input
               value={bannerUrl}
               onChange={(event) => setBannerUrl(event.target.value)}
               placeholder="https://..."
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+              className="w-full rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
             />
           </label>
         </div>
@@ -173,14 +173,14 @@ export function ManagerSettingsForm({
       <Card>
         <div className="mb-4">
           <h2 className="text-lg font-black">Aparência</h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--q-muted)]">
             Cores usadas para personalizar a experiência do restaurante.
           </p>
         </div>
 
         <div className="space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">
+            <span className="mb-2 block text-sm text-[var(--q-text-soft)]">
               Cor principal
             </span>
             <div className="flex gap-3">
@@ -188,18 +188,18 @@ export function ManagerSettingsForm({
                 type="color"
                 value={primaryColor}
                 onChange={(event) => setPrimaryColor(event.target.value)}
-                className="h-12 w-16 rounded-xl border border-white/10 bg-zinc-900"
+                className="h-12 w-16 rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)]"
               />
               <input
                 value={primaryColor}
                 onChange={(event) => setPrimaryColor(event.target.value)}
-                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="min-w-0 flex-1 rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               />
             </div>
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">
+            <span className="mb-2 block text-sm text-[var(--q-text-soft)]">
               Cor secundária
             </span>
             <div className="flex gap-3">
@@ -207,12 +207,12 @@ export function ManagerSettingsForm({
                 type="color"
                 value={secondaryColor}
                 onChange={(event) => setSecondaryColor(event.target.value)}
-                className="h-12 w-16 rounded-xl border border-white/10 bg-zinc-900"
+                className="h-12 w-16 rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)]"
               />
               <input
                 value={secondaryColor}
                 onChange={(event) => setSecondaryColor(event.target.value)}
-                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+                className="min-w-0 flex-1 rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
               />
             </div>
           </label>
@@ -222,14 +222,14 @@ export function ManagerSettingsForm({
       <Card>
         <div className="mb-4">
           <h2 className="text-lg font-black">Operação</h2>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-[var(--q-muted)]">
             Regras operacionais do restaurante.
           </p>
         </div>
 
         <div className="space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm text-zinc-300">
+            <span className="mb-2 block text-sm text-[var(--q-text-soft)]">
               Taxa padrão do garçom (%)
             </span>
             <input
@@ -240,12 +240,12 @@ export function ManagerSettingsForm({
               onChange={(event) =>
                 setDefaultServicePercent(event.target.value)
               }
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-orange-500"
+              className="w-full rounded-xl border border-[color:var(--q-border)] bg-[var(--q-card)] px-4 py-3 text-sm text-white outline-none focus:border-emerald-500"
             />
           </label>
 
-          <div className="space-y-4 rounded-2xl border border-white/10 bg-zinc-900/60 p-4">
-            <label className="flex items-center gap-3 text-sm text-zinc-300">
+          <div className="space-y-4 rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-card)]/60 p-4">
+            <label className="flex items-center gap-3 text-sm text-[var(--q-text-soft)]">
               <input
                 type="checkbox"
                 checked={allowCashierServicePercentEdit}
@@ -256,7 +256,7 @@ export function ManagerSettingsForm({
               Permitir alterar taxa no caixa
             </label>
 
-            <label className="flex items-center gap-3 text-sm text-zinc-300">
+            <label className="flex items-center gap-3 text-sm text-[var(--q-text-soft)]">
               <input
                 type="checkbox"
                 checked={requireTableApproval}
@@ -267,7 +267,7 @@ export function ManagerSettingsForm({
               Exigir aprovação da mesa
             </label>
 
-            <label className="flex items-center gap-3 text-sm text-zinc-300">
+            <label className="flex items-center gap-3 text-sm text-[var(--q-text-soft)]">
               <input
                 type="checkbox"
                 checked={requireOrderApproval}
@@ -281,7 +281,7 @@ export function ManagerSettingsForm({
         </div>
       </Card>
 
-      {message && <p className="text-sm text-zinc-300">{message}</p>}
+      {message && <p className="text-sm text-[var(--q-text-soft)]">{message}</p>}
 
       <div className="">
         <Button type="submit" disabled={saving} className="min-h-12 w-full rounded-2xl text-sm font-black">

@@ -1,24 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --font-geist-sans: Arial, Helvetica, sans-serif;
-  --font-geist-mono: "Courier New", monospace;
+  --background: #080d0b;
+  --foreground: #f8fafc;
+  --q-bg-outer: #050806;
+  --q-bg: #080d0b;
+  --q-bg-soft: #0d1512;
+  --q-card: #111c18;
+  --q-card-elevated: #17241f;
+  --q-border: rgba(134, 239, 172, 0.16);
+  --q-border-strong: rgba(134, 239, 172, 0.28);
+  --q-primary: #22c55e;
+  --q-primary-strong: #16a34a;
+  --q-primary-soft: rgba(34, 197, 94, 0.12);
+  --q-accent: #f59e0b;
+  --q-accent-soft: rgba(245, 158, 11, 0.14);
+  --q-danger: #ef4444;
+  --q-danger-soft: rgba(239, 68, 68, 0.12);
+  --q-info: #3b82f6;
+  --q-info-soft: rgba(59, 130, 246, 0.12);
+  --q-text: #f8fafc;
+  --q-text-soft: #cbd5e1;
+  --q-muted: #94a3b8;
+  --q-dim: #64748b;
+  --font-quiteria-sans: "Aptos", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-quiteria-mono: "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-quiteria-sans);
+  --font-mono: var(--font-quiteria-mono);
 }
 
 * {
@@ -31,12 +44,23 @@ body {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+  background: var(--q-bg-outer);
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.12), transparent 34rem),
+    radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.08), transparent 30rem),
+    linear-gradient(180deg, var(--q-bg-outer), var(--q-bg));
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-quiteria-sans);
+  letter-spacing: -0.01em;
+  text-rendering: geometricPrecision;
 }
 
 button,
@@ -45,10 +69,78 @@ input,
 select,
 textarea {
   max-width: 100%;
+  font-family: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }
 
 input,
 select,
 textarea {
   font-size: 16px;
+}
+
+::selection {
+  background: rgba(34, 197, 94, 0.28);
+  color: var(--q-text);
+}
+
+:focus-visible {
+  outline: 2px solid rgba(34, 197, 94, 0.75);
+  outline-offset: 3px;
+}
+
+.q-app-shell {
+  background:
+    linear-gradient(180deg, rgba(13, 21, 18, 0.98), rgba(8, 13, 11, 1)),
+    var(--q-bg);
+}
+
+.q-card {
+  border: 1px solid var(--q-border);
+  background: linear-gradient(180deg, rgba(23, 36, 31, 0.9), rgba(17, 28, 24, 0.9));
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.22);
+}
+
+.q-card-subtle {
+  border: 1px solid var(--q-border);
+  background: rgba(17, 28, 24, 0.72);
+}
+
+.q-bottom-bar {
+  border-color: var(--q-border);
+  background: rgba(8, 13, 11, 0.94);
+  box-shadow: 0 -18px 48px rgba(0, 0, 0, 0.32);
+}
+
+.q-input {
+  min-height: 3rem;
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--q-border);
+  background: rgba(8, 13, 11, 0.68);
+  padding: 0.75rem 1rem;
+  color: var(--q-text);
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.q-input::placeholder {
+  color: var(--q-dim);
+}
+
+.q-input:focus {
+  border-color: rgba(34, 197, 94, 0.68);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+}
+
+.q-label {
+  margin-bottom: 0.5rem;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--q-text-soft);
 }

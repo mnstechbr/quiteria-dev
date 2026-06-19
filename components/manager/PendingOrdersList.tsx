@@ -23,8 +23,8 @@ export function PendingOrdersList({
 }: PendingOrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center sm:p-8">
-        <p className="text-sm text-zinc-400">
+      <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-6 text-center sm:p-8">
+        <p className="text-sm text-[var(--q-muted)]">
           Nenhum pedido aguardando aprovação no momento.
         </p>
       </div>
@@ -44,7 +44,7 @@ export function PendingOrdersList({
                 {order.table_name}
               </p>
 
-              <p className="mt-1 text-xs text-zinc-400">
+              <p className="mt-1 text-xs text-[var(--q-muted)]">
                 Pedido aguardando aprovação
               </p>
             </div>
@@ -54,7 +54,7 @@ export function PendingOrdersList({
                 {formatCurrency(order.total_amount)}
               </p>
 
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-[var(--q-dim)]">
                 {order.items.length} item(ns)
               </p>
             </div>
@@ -64,7 +64,7 @@ export function PendingOrdersList({
             {order.items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/60 p-3"
+                className="flex items-start justify-between gap-3 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.60)] p-3"
               >
                 <div className="min-w-0 flex-1">
                   <p className="break-words text-sm font-medium text-white">
@@ -72,17 +72,17 @@ export function PendingOrdersList({
                   </p>
 
                   {item.notes && (
-                    <p className="mt-1 break-words text-xs text-zinc-400">
+                    <p className="mt-1 break-words text-xs text-[var(--q-muted)]">
                       Obs: {item.notes}
                     </p>
                   )}
 
-                  <p className="mt-1 text-xs text-zinc-500">
+                  <p className="mt-1 text-xs text-[var(--q-dim)]">
                     {item.preparation_area === "BAR" ? "Bar" : "Cozinha"}
                   </p>
                 </div>
 
-                <p className="shrink-0 text-right text-xs font-semibold text-zinc-300 sm:text-sm">
+                <p className="shrink-0 text-right text-xs font-semibold text-[var(--q-text-soft)] sm:text-sm">
                   {formatCurrency(item.total_price)}
                 </p>
               </div>

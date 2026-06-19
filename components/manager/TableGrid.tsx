@@ -66,8 +66,8 @@ export function TableGrid({
 }: TableGridProps) {
   if (tables.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
-        <p className="text-sm text-zinc-400">Nenhuma mesa encontrada.</p>
+      <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-6 text-center">
+        <p className="text-sm text-[var(--q-muted)]">Nenhuma mesa encontrada.</p>
       </div>
     );
   }
@@ -110,24 +110,24 @@ export function TableGrid({
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                <p className="text-zinc-500">Mesa</p>
-                <p className="mt-1 font-bold text-zinc-200">
+              <div className="rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/20 p-3">
+                <p className="text-[var(--q-dim)]">Mesa</p>
+                <p className="mt-1 font-bold text-[var(--q-text)]">
                   {table.is_active ? "Ativa" : "Inativa"}
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                <p className="text-zinc-500">Sessão</p>
-                <p className="mt-1 truncate font-bold text-zinc-200">
+              <div className="rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/20 p-3">
+                <p className="text-[var(--q-dim)]">Sessão</p>
+                <p className="mt-1 truncate font-bold text-[var(--q-text)]">
                   {table.active_session_id ? "Aberta" : "Sem sessão"}
                 </p>
               </div>
             </div>
 
-            <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3">
+            <div className="mt-3 rounded-2xl border border-[color:var(--q-border)] bg-[var(--q-bg-outer)]/20 p-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-600">Token QR</p>
-              <p className="mt-1 break-all text-[11px] leading-relaxed text-zinc-400">
+              <p className="mt-1 break-all text-[11px] leading-relaxed text-[var(--q-muted)]">
                 {table.qr_token}
               </p>
             </div>

@@ -41,8 +41,8 @@ function getStatusInfo(status: string) {
   return {
     label: status,
     dot: "bg-zinc-400",
-    card: "border-white/10 bg-zinc-900/70",
-    text: "text-zinc-300",
+    card: "border-[color:var(--q-border)] bg-[rgba(17,28,24,0.72)]",
+    text: "text-[var(--q-text-soft)]",
   };
 }
 
@@ -61,8 +61,8 @@ export function BarOrdersList({
 }: BarOrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-8 text-center">
-        <p className="text-sm leading-relaxed text-zinc-400">{emptyMessage}</p>
+      <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-8 text-center">
+        <p className="text-sm leading-relaxed text-[var(--q-muted)]">{emptyMessage}</p>
       </div>
     );
   }
@@ -72,12 +72,12 @@ export function BarOrdersList({
       {orders.map((order) => (
         <article
           key={order.id}
-          className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04]"
+          className="overflow-hidden rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)]"
         >
-          <header className="border-b border-white/10 p-4">
+          <header className="border-b border-[color:var(--q-border)] p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-orange-300">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-300">
                   {order.table_name}
                 </p>
 
@@ -86,7 +86,7 @@ export function BarOrdersList({
                 </h2>
               </div>
 
-              <span className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-xs font-bold text-zinc-300">
+              <span className="shrink-0 rounded-full border border-[color:var(--q-border)] px-3 py-1 text-xs font-bold text-[var(--q-text-soft)]">
                 {getOrderProgress(order.items)}
               </span>
             </div>
@@ -109,7 +109,7 @@ export function BarOrdersList({
                       </p>
 
                       {item.notes && (
-                        <p className="mt-2 break-words rounded-2xl border border-white/10 bg-zinc-950/40 p-3 text-sm leading-relaxed text-zinc-300">
+                        <p className="mt-2 break-words rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.42)] p-3 text-sm leading-relaxed text-[var(--q-text-soft)]">
                           Obs: {item.notes}
                         </p>
                       )}
@@ -118,8 +118,8 @@ export function BarOrdersList({
                     <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${statusInfo.dot}`} />
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/40 p-3">
-                    <span className="text-xs font-semibold text-zinc-500">
+                  <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(8,13,11,0.42)] p-3">
+                    <span className="text-xs font-semibold text-[var(--q-dim)]">
                       Status
                     </span>
                     <span className={`text-xs font-black ${statusInfo.text}`}>

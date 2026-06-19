@@ -328,7 +328,7 @@ export default function ManagerTablesPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-6 text-center text-sm text-white">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--q-bg)] px-6 text-center text-sm text-white">
         Carregando mesas...
       </main>
     );
@@ -385,8 +385,8 @@ export default function ManagerTablesPage() {
                 onClick={() => setTableFilter(filter.id)}
                 className={`shrink-0 rounded-2xl border px-3 py-2 text-xs font-semibold transition active:scale-95 ${
                   isActive
-                    ? "border-orange-500 bg-orange-500 text-white"
-                    : "border-white/10 bg-zinc-900 text-zinc-300"
+                    ? "border-emerald-500 bg-emerald-500 text-white"
+                    : "border-[color:var(--q-border)] bg-[var(--q-card)] text-[var(--q-text-soft)]"
                 }`}
               >
                 {filter.label} <span className="opacity-80">{getFilterCount(filter.id)}</span>
@@ -396,7 +396,7 @@ export default function ManagerTablesPage() {
         </div>
 
         {message && (
-          <p className="mb-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-zinc-300">
+          <p className="mb-3 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-3 text-sm text-[var(--q-text-soft)]">
             {message}
           </p>
         )}

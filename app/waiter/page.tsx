@@ -22,10 +22,10 @@ const WAITER_TABS: Array<{
   shortLabel: string;
   icon: string;
 }> = [
-  { id: "summary", label: "Resumo", shortLabel: "Início", icon: "🏠" },
-  { id: "pending", label: "Aprovações", shortLabel: "Aprovar", icon: "✅" },
-  { id: "ready", label: "Entregas", shortLabel: "Prontos", icon: "🍽️" },
-  { id: "tables", label: "Mesas", shortLabel: "Mesas", icon: "🪑" },
+  { id: "summary", label: "Resumo", shortLabel: "Início", icon: "IN" },
+  { id: "pending", label: "Aprovações", shortLabel: "Aprovar", icon: "AP" },
+  { id: "ready", label: "Entregas", shortLabel: "Prontos", icon: "PR" },
+  { id: "tables", label: "Mesas", shortLabel: "Mesas", icon: "ME" },
 ];
 
 const TABLE_FILTERS: Array<{
@@ -376,7 +376,7 @@ export default function WaiterPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-dvh items-center justify-center overflow-hidden bg-zinc-950 px-6 text-center text-sm text-zinc-300">
+      <main className="flex min-h-dvh items-center justify-center overflow-hidden bg-[var(--q-bg)] px-6 text-center text-sm text-[var(--q-text-soft)]">
         Carregando painel do garçom...
       </main>
     );
@@ -385,18 +385,18 @@ export default function WaiterPage() {
   if (!allowed) return null;
 
   return (
-    <main className="min-h-dvh w-full overflow-x-hidden bg-black text-white">
-      <div className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col overflow-x-hidden bg-zinc-950">
-        <header className="sticky top-0 z-40 shrink-0 border-b border-white/10 bg-zinc-950/95 px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
+    <main className="min-h-dvh w-full overflow-x-hidden bg-[var(--q-bg-outer)] text-white">
+      <div className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col overflow-x-hidden bg-[var(--q-bg)]">
+        <header className="sticky top-0 z-40 shrink-0 border-b border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] backdrop-blur">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-400">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300">
                 Painel do garçom
               </p>
               <h1 className="mt-1 truncate text-2xl font-black leading-tight">
                 Quitéria
               </h1>
-              <p className="mt-1 truncate text-xs text-zinc-400">
+              <p className="mt-1 truncate text-xs text-[var(--q-muted)]">
                 {activeTabLabel} • {userName}
               </p>
             </div>
@@ -404,7 +404,7 @@ export default function WaiterPage() {
             <button
               type="button"
               onClick={handleLogout}
-              className="shrink-0 rounded-2xl border border-white/10 px-3 py-2 text-xs font-semibold text-zinc-300 transition active:scale-95"
+              className="shrink-0 rounded-2xl border border-[color:var(--q-border)] px-3 py-2 text-xs font-semibold text-[var(--q-text-soft)] transition active:scale-95"
             >
               Sair
             </button>
@@ -427,15 +427,15 @@ export default function WaiterPage() {
                 <SummaryCard label="Conta" value={tableCounters.bill} />
               </div>
 
-              <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+              <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <h2 className="text-base font-bold">Fila de atendimento</h2>
-                    <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+                    <p className="mt-1 text-xs leading-relaxed text-[var(--q-muted)]">
                       Ações principais em cards grandes, com um único scroll vertical.
                     </p>
                   </div>
-                  <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] text-zinc-300">
+                  <span className="rounded-full border border-[color:var(--q-border)] px-2.5 py-1 text-[10px] text-[var(--q-text-soft)]">
                     {tables.length} mesas
                   </span>
                 </div>
@@ -523,8 +523,8 @@ export default function WaiterPage() {
                       onClick={() => setTableFilter(filter.id)}
                       className={`rounded-2xl border px-3 py-2 text-xs font-semibold transition active:scale-95 ${
                         isActive
-                          ? "border-orange-500 bg-orange-500 text-white"
-                          : "border-white/10 bg-white/[0.04] text-zinc-300"
+                          ? "border-emerald-500 bg-emerald-500 text-white"
+                          : "border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] text-[var(--q-text-soft)]"
                       }`}
                     >
                       {filter.label} <span className="opacity-80">{count}</span>
@@ -548,7 +548,7 @@ export default function WaiterPage() {
           )}
         </section>
 
-        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-white/10 bg-zinc-950/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
+        <nav className="fixed bottom-0 left-1/2 z-50 w-full max-w-[480px] -translate-x-1/2 border-t border-[color:var(--q-border)] bg-[rgba(8,13,11,0.94)] px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
           <div className="grid grid-cols-4 gap-1">
             {WAITER_TABS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -560,8 +560,8 @@ export default function WaiterPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`min-w-0 rounded-2xl px-1 py-2 text-center text-[10px] font-semibold transition active:scale-95 ${
                     isActive
-                      ? "bg-orange-500 text-white shadow-[0_0_18px_rgba(249,115,22,0.22)]"
-                      : "text-zinc-400"
+                      ? "bg-emerald-500 text-white shadow-[0_0_18px_rgba(34,197,94,0.20)]"
+                      : "text-[var(--q-muted)]"
                   }`}
                 >
                   <span className="block text-base leading-none">{tab.icon}</span>
@@ -586,8 +586,8 @@ function SummaryCard({
   compact?: boolean;
 }) {
   return (
-    <div className={`min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] ${compact ? "p-3" : "p-4"}`}>
-      <p className="truncate text-xs text-zinc-400">{label}</p>
+    <div className={`min-w-0 rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] ${compact ? "p-3" : "p-4"}`}>
+      <p className="truncate text-xs text-[var(--q-muted)]">{label}</p>
       <p className={`${compact ? "mt-1 text-xl" : "mt-2 text-2xl"} truncate font-black text-white`}>
         {value}
       </p>
@@ -608,10 +608,10 @@ function QuickActionButton({
     <button
       type="button"
       onClick={onClick}
-      className="w-full rounded-2xl border border-white/10 bg-zinc-900/70 p-4 text-left transition active:scale-[0.99]"
+      className="w-full rounded-2xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.72)] p-4 text-left transition active:scale-[0.99]"
     >
       <span className="block text-sm font-bold text-white">{label}</span>
-      <span className="mt-1 block text-xs leading-relaxed text-zinc-400">
+      <span className="mt-1 block text-xs leading-relaxed text-[var(--q-muted)]">
         {detail}
       </span>
     </button>
@@ -630,11 +630,11 @@ function SectionHeader({
   onAction?: () => void;
 }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+    <div className="rounded-3xl border border-[color:var(--q-border)] bg-[rgba(17,28,24,0.74)] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-black leading-tight">{title}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-zinc-400">{description}</p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--q-muted)]">{description}</p>
         </div>
         {actionLabel && onAction && (
           <Button type="button" onClick={onAction} className="shrink-0 px-3 py-2 text-xs">
@@ -648,8 +648,8 @@ function SectionHeader({
 
 function EmptyMobileState({ text }: { text: string }) {
   return (
-    <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-center">
-      <p className="text-sm text-zinc-400">{text}</p>
+    <div className="rounded-3xl border border-dashed border-[color:var(--q-border)] bg-[rgba(13,21,18,0.74)] p-6 text-center">
+      <p className="text-sm text-[var(--q-muted)]">{text}</p>
     </div>
   );
 }
