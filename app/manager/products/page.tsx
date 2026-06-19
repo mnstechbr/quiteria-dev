@@ -124,6 +124,13 @@ export default function ManagerProductsPage() {
     setMessage("Produto atualizado com sucesso.");
   }
 
+  function handleProductDeleted(productId: string) {
+    setProducts((currentProducts) =>
+      currentProducts.filter((currentProduct) => currentProduct.id !== productId),
+    );
+    setMessage("Produto removido do cardápio com sucesso.");
+  }
+
   async function handleRefresh() {
     try {
       setMessage(null);
@@ -199,6 +206,7 @@ export default function ManagerProductsPage() {
           products={products}
           categories={categories}
           onUpdated={handleProductUpdated}
+          onDeleted={handleProductDeleted}
         />
       </MobileSectionCard>
     </ManagerMobileShell>

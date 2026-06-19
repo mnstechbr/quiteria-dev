@@ -10,6 +10,7 @@ type ProductListProps = {
   products: Product[];
   categories?: Category[];
   onUpdated?: (product: Product) => void;
+  onDeleted?: (productId: string) => void;
 };
 
 type ProductFormState = {
@@ -49,17 +50,31 @@ export function ProductList({
   products,
   categories = [],
   onUpdated,
+  onDeleted,
 }: ProductListProps) {
   const [localProducts, setLocalProducts] = useState<Product[]>(products);
   const [editingProduct, setEditingProduct] =
     useState<ProductFormState | null>(null);
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [editingError, setEditingError] = useState<string | null>(null);
 
   useEffect(() => {
     setLocalProducts(products);
   }, [products]);
+
+  async function getAccessToken() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error("Sessão não encontrada.");
+    }
+
+    return session.access_token;
+  }
 
   async function handleSaveProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -71,19 +86,13 @@ export function ProductList({
       setMessage(null);
       setEditingError(null);
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error("Sessão não encontrada.");
-      }
+      const accessToken = await getAccessToken();
 
       const response = await fetch("/api/products", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           id: editingProduct.id,
@@ -127,6 +136,47 @@ export function ProductList({
       setMessage(errorMessage);
     } finally {
       setSavingProductId(null);
+    }
+  }
+
+  async function handleDeleteProduct(product: Product) {
+    const confirmed = window.confirm(
+      `Excluir ${product.name}? Se o produto já tiver histórico de pedidos, ele será removido do cardápio sem apagar o histórico.`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingProductId(product.id);
+      setMessage(null);
+      setEditingError(null);
+
+      const accessToken = await getAccessToken();
+
+      const response = await fetch("/api/products", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ id: product.id }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message ?? "Erro ao excluir produto.");
+      }
+
+      setLocalProducts((currentProducts) =>
+        currentProducts.filter((currentProduct) => currentProduct.id !== product.id),
+      );
+      onDeleted?.(product.id);
+      setMessage(data.message ?? "Produto excluído com sucesso.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Erro ao excluir produto.");
+    } finally {
+      setDeletingProductId(null);
     }
   }
 
@@ -205,17 +255,28 @@ export function ProductList({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setMessage(null);
-              setEditingError(null);
-              setEditingProduct(createFormState(product));
-            }}
-            className="mt-4 min-h-12 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200 transition active:scale-[0.99]"
-          >
-            Editar produto
-          </button>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMessage(null);
+                setEditingError(null);
+                setEditingProduct(createFormState(product));
+              }}
+              className="min-h-12 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-black text-zinc-200 transition active:scale-[0.99]"
+            >
+              Editar
+            </button>
+
+            <button
+              type="button"
+              disabled={deletingProductId === product.id}
+              onClick={() => handleDeleteProduct(product)}
+              className="min-h-12 rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm font-black text-red-200 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {deletingProductId === product.id ? "Excluindo..." : "Excluir"}
+            </button>
+          </div>
         </article>
       ))}
 
@@ -241,7 +302,6 @@ export function ProductList({
                 Fechar
               </button>
             </div>
-
 
             {editingError && (
               <div className="mb-4 rounded-2xl border border-red-400/30 bg-red-400/10 p-3 text-sm leading-relaxed text-red-100">

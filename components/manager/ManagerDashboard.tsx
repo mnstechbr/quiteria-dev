@@ -2,6 +2,9 @@
 
 export type ManagerDashboardData = {
   revenueToday: number;
+  ordersToday: number;
+  closedTablesToday: number;
+  averageTicketToday: number;
   openTables: number;
   billRequestedTables: number;
   pendingOrders: number;
@@ -18,11 +21,14 @@ function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(value);
+  }).format(Number(value ?? 0));
 }
 
 const EMPTY_DASHBOARD: ManagerDashboardData = {
   revenueToday: 0,
+  ordersToday: 0,
+  closedTablesToday: 0,
+  averageTicketToday: 0,
   openTables: 0,
   billRequestedTables: 0,
   pendingOrders: 0,
@@ -38,10 +44,34 @@ export function ManagerDashboard({ dashboard }: ManagerDashboardProps) {
     {
       label: "Faturamento hoje",
       value: formatCurrency(safeDashboard.revenueToday),
-      detail: "Mesas fechadas no dia",
+      detail: "Contas fechadas ou pedidos do dia",
       className:
         "border-emerald-300/50 bg-emerald-300/10 shadow-[0_0_18px_rgba(110,231,183,0.10)]",
       valueClassName: "text-emerald-200",
+    },
+    {
+      label: "Pedidos hoje",
+      value: safeDashboard.ordersToday,
+      detail: "Pedidos criados hoje",
+      className:
+        "border-orange-300/50 bg-orange-300/10 shadow-[0_0_18px_rgba(253,186,116,0.10)]",
+      valueClassName: "text-orange-200",
+    },
+    {
+      label: "Contas fechadas",
+      value: safeDashboard.closedTablesToday,
+      detail: "Mesas finalizadas hoje",
+      className:
+        "border-cyan-300/50 bg-cyan-300/10 shadow-[0_0_18px_rgba(103,232,249,0.10)]",
+      valueClassName: "text-cyan-200",
+    },
+    {
+      label: "Ticket médio",
+      value: formatCurrency(safeDashboard.averageTicketToday),
+      detail: "Média do dia",
+      className:
+        "border-lime-300/50 bg-lime-300/10 shadow-[0_0_18px_rgba(190,242,100,0.10)]",
+      valueClassName: "text-lime-200",
     },
     {
       label: "Mesas abertas",
@@ -64,8 +94,8 @@ export function ManagerDashboard({ dashboard }: ManagerDashboardProps) {
       value: safeDashboard.pendingOrders,
       detail: "Aguardando aprovação",
       className:
-        "border-orange-300/50 bg-orange-300/10 shadow-[0_0_18px_rgba(253,186,116,0.10)]",
-      valueClassName: "text-orange-200",
+        "border-yellow-300/50 bg-yellow-300/10 shadow-[0_0_18px_rgba(253,224,71,0.10)]",
+      valueClassName: "text-yellow-200",
     },
     {
       label: "Em produção",
@@ -94,7 +124,7 @@ export function ManagerDashboard({ dashboard }: ManagerDashboardProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-2 min-[390px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
       {cards.map((card) => (
         <div
           key={card.label}

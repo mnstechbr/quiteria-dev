@@ -495,6 +495,13 @@ export default function ManagerPage() {
     setMessage("Produto atualizado com sucesso.");
   }
 
+  function handleProductDeleted(productId: string) {
+    setProducts((currentProducts) =>
+      currentProducts.filter((currentProduct) => currentProduct.id !== productId),
+    );
+    setMessage("Produto removido do cardápio com sucesso.");
+  }
+
   function handleCategoryCreated(category: Category) {
     setCategories((currentCategories) => [category, ...currentCategories]);
     setMessage("Categoria criada com sucesso.");
@@ -715,6 +722,7 @@ export default function ManagerPage() {
                 products={products}
                 categories={categories}
                 onUpdated={handleProductUpdated}
+                onDeleted={handleProductDeleted}
               />
             </div>
           )}

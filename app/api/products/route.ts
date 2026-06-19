@@ -92,14 +92,21 @@ function normalizePrice(value: unknown) {
 export async function GET(request: Request) {
   try {
     const { restaurantId } = await requireManager(request);
+    const url = new URL(request.url);
+    const includeInactive = url.searchParams.get("includeInactive") === "true";
 
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("products")
       .select(
         "id, restaurant_id, category_id, name, description, price, image_url, preparation_area, is_active, is_featured, sort_order, created_at",
       )
-      .eq("restaurant_id", restaurantId)
-      .order("sort_order", { ascending: true });
+      .eq("restaurant_id", restaurantId);
+
+    if (!includeInactive) {
+      query = query.eq("is_active", true);
+    }
+
+    const { data, error } = await query.order("sort_order", { ascending: true });
 
     if (error) {
       throw new Error(error.message);
@@ -280,6 +287,116 @@ export async function PATCH(request: Request) {
           error instanceof Error
             ? error.message
             : "Erro ao atualizar produto.",
+      },
+      { status: errorStatus(error) },
+    );
+  }
+}
+
+
+export async function DELETE(request: Request) {
+  try {
+    const { restaurantId } = await requireManager(request);
+    const body = await request.json().catch(() => ({}));
+    const id = normalizeText(body.id);
+
+    if (!id) {
+      throw new Error("Informe o produto.");
+    }
+
+    const { data: product, error: productError } = await supabaseAdmin
+      .from("products")
+      .select("id, restaurant_id, name")
+      .eq("id", id)
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle();
+
+    if (productError) {
+      throw new Error(productError.message);
+    }
+
+    if (!product) {
+      throw new Error("Produto não encontrado para este restaurante.");
+    }
+
+    const { data: linkedItems, error: linkedItemsError } = await supabaseAdmin
+      .from("order_items")
+      .select("id")
+      .eq("product_id", id)
+      .limit(1);
+
+    if (linkedItemsError) {
+      throw new Error(linkedItemsError.message);
+    }
+
+    if ((linkedItems ?? []).length > 0) {
+      const { data: inactiveProduct, error: deactivateError } = await supabaseAdmin
+        .from("products")
+        .update({
+          is_active: false,
+          is_featured: false,
+        })
+        .eq("id", id)
+        .eq("restaurant_id", restaurantId)
+        .select(
+          "id, restaurant_id, category_id, name, description, price, image_url, preparation_area, is_active, is_featured, sort_order, created_at",
+        )
+        .single();
+
+      if (deactivateError) {
+        throw new Error(deactivateError.message);
+      }
+
+      return NextResponse.json({
+        deleted: false,
+        product: inactiveProduct,
+        message:
+          "Produto já possui histórico de pedidos e foi removido do cardápio com segurança.",
+      });
+    }
+
+    const { error: deleteError } = await supabaseAdmin
+      .from("products")
+      .delete()
+      .eq("id", id)
+      .eq("restaurant_id", restaurantId);
+
+    if (deleteError) {
+      const { data: inactiveProduct, error: deactivateError } = await supabaseAdmin
+        .from("products")
+        .update({
+          is_active: false,
+          is_featured: false,
+        })
+        .eq("id", id)
+        .eq("restaurant_id", restaurantId)
+        .select(
+          "id, restaurant_id, category_id, name, description, price, image_url, preparation_area, is_active, is_featured, sort_order, created_at",
+        )
+        .single();
+
+      if (deactivateError) {
+        throw new Error(deleteError.message);
+      }
+
+      return NextResponse.json({
+        deleted: false,
+        product: inactiveProduct,
+        message:
+          "Produto foi removido do cardápio com segurança porque não pôde ser apagado fisicamente.",
+      });
+    }
+
+    return NextResponse.json({
+      deleted: true,
+      id,
+      message: "Produto excluído com sucesso.",
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message:
+          error instanceof Error ? error.message : "Erro ao excluir produto.",
       },
       { status: errorStatus(error) },
     );
